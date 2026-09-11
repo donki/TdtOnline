@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    TDT Online: los canales de la TDT por internet, para movil, tablet y Android TV.
+
+    Es .NET para Android a secas, no MAUI: en un televisor todo se maneja con la cruceta del mando y
+    el foco tiene que ir de tarjeta en tarjeta; los controles nativos de Android lo hacen solos y
+    MAUI no. El mismo APK vale para el movil (se toca) y para la tele (se navega con el mando).
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-android36.0</TargetFramework>
+    <TargetSdkVersion>36</TargetSdkVersion>
+    <SupportedOSPlatformVersion>24</SupportedOSPlatformVersion>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>TdtOnline</RootNamespace>
+    <ApplicationId>com.socratic.tdtonline</ApplicationId>
+    <ApplicationDisplayVersion>2026.09.11.1</ApplicationDisplayVersion>
+    <ApplicationVersion>2026091101</ApplicationVersion>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+  </PropertyGroup>
+
+  <Import Project="..\Shared\signing.props" />
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+    <RunAOTCompilation>false</RunAOTCompilation>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Media3 (ExoPlayer) reproduce los HLS de las cadenas; UI trae el PlayerView con los
+         controles que se manejan con el mando. Todo Apache 2.0 (ver THIRD-PARTY-NOTICES.md). -->
+    <PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer" Version="1.11.0" />
+    <PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.Hls" Version="1.11.0" />
+    <PackageReference Include="Xamarin.AndroidX.Media3.UI" Version="1.11.0" />
+    <PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.4.0.6" />
+    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.8.0" />
+  </ItemGroup>
+
+</Project>
