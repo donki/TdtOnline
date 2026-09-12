@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginBottom="6dp">
+
+    <!-- El canal: con el foco y OK se abre. -->
+    <LinearLayout
+        android:id="@+id/channel"
+        android:layout_width="150dp"
+        android:layout_height="92dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="6dp"
+        android:background="@drawable/card_background"
+        android:focusable="true"
+        android:clickable="true">
+
+        <ImageView
+            android:id="@+id/logo"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scaleType="fitCenter"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/programs"
+        android:layout_width="0dp"
+        android:layout_height="92dp"
+        android:layout_weight="1"
+        android:layout_marginStart="6dp"
+        android:clipToPadding="false" />
+</LinearLayout>

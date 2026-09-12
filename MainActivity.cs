@@ -83,6 +83,7 @@ public sealed class MainActivity : AppCompatActivity
         _btnAbout = FindViewById<ImageButton>(Resource.Id.btn_about)!;
 
         _btnAbout.Click += (_, _) => StartActivity(new Intent(this, typeof(AboutActivity)));
+        FindViewById<ImageButton>(Resource.Id.btn_guide)!.Click += (_, _) => StartActivity(new Intent(this, typeof(GuideActivity)));
 
         _lastChannelView.Click += (_, _) =>
         {
@@ -330,16 +331,7 @@ public sealed class MainActivity : AppCompatActivity
     {
         _prefs.LastChannel = channel.Name;
         UpdateLastChannelUi();
-
-        var intent = new Intent(this, typeof(PlayerActivity));
-        intent.PutExtra(PlayerActivity.ExtraName, channel.Name);
-        intent.PutExtra(PlayerActivity.ExtraUrls, channel.StreamUrls.ToArray());
-        if (channel.Resolver is not null)
-            intent.PutExtra(PlayerActivity.ExtraResolver, channel.Resolver);
-        if (!string.IsNullOrWhiteSpace(channel.EpgId))
-            intent.PutExtra(PlayerActivity.ExtraEpgId, channel.EpgId);
-
-        StartActivity(intent);
+        StartActivity(PlayerActivity.IntentFor(this, channel));
     }
 
     public override bool OnKeyDown([Android.Runtime.GeneratedEnum] Keycode keyCode, KeyEvent? e)
@@ -347,6 +339,13 @@ public sealed class MainActivity : AppCompatActivity
         if (keyCode == Keycode.Info)
         {
             StartActivity(new Intent(this, typeof(AboutActivity)));
+            return true;
+        }
+
+        // El boton rojo del mando abre la parrilla (el de «guia» se lo queda el sistema en Android TV).
+        if (keyCode == Keycode.ProgRed)
+        {
+            StartActivity(new Intent(this, typeof(GuideActivity)));
             return true;
         }
 

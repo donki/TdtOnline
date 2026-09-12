@@ -1,3 +1,5 @@
+using Android.Content;
+using TdtOnline.Models;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
@@ -53,6 +55,19 @@ public sealed class PlayerActivity : AppCompatActivity
     private string? _resolver;
     private DateTime _resolvedAt = DateTime.MinValue;
     private CancellationTokenSource? _resolving;
+
+    /// <summary>El intent que abre este reproductor con un canal: lo usan la lista y la parrilla.</summary>
+    public static Intent IntentFor(Context context, Channel channel)
+    {
+        var intent = new Intent(context, typeof(PlayerActivity));
+        intent.PutExtra(ExtraName, channel.Name);
+        intent.PutExtra(ExtraUrls, channel.StreamUrls.ToArray());
+        if (!string.IsNullOrWhiteSpace(channel.EpgId))
+            intent.PutExtra(ExtraEpgId, channel.EpgId);
+        if (channel.Resolver is not null)
+            intent.PutExtra(ExtraResolver, channel.Resolver);
+        return intent;
+    }
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {

@@ -118,6 +118,44 @@ public sealed class EpgService
         }
     }
 
+    /// <summary>¿Hay guia para este canal?</summary>
+    public bool Has(string? epgId)
+    {
+        if (string.IsNullOrWhiteSpace(epgId))
+            return false;
+
+        lock (_lock)
+            return _epgData.ContainsKey(epgId);
+    }
+
+    /// <summary>El programa en curso y los siguientes, hasta <paramref name="max"/>; vacio si no hay guia.</summary>
+    public IReadOnlyList<EpgProgram> GetUpcoming(string? epgId, int max)
+    {
+        if (string.IsNullOrWhiteSpace(epgId))
+            return [];
+
+        List<EpgProgram>? list;
+        lock (_lock)
+        {
+            if (!_epgData.TryGetValue(epgId, out list) || list.Count == 0)
+                return [];
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var result = new List<EpgProgram>(max);
+        foreach (var p in list)
+        {
+            if (p.EndEpochSeconds <= now)
+                continue;
+
+            result.Add(p);
+            if (result.Count >= max)
+                break;
+        }
+
+        return result;
+    }
+
     /// <summary>Obtiene el programa que se emite actualmente (o el siguiente proximo).</summary>
     public EpgProgram? GetCurrentProgram(string? epgId)
     {

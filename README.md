@@ -23,6 +23,9 @@ por categoría con buscador y favoritos, logotipos, guía de programación y rep
 - **Lo que no está.** Antena 3, laSexta, Neox, Nova, Mega, Telecinco, Cuatro, FDF, Energy, Divinity,
   Be Mad y Boing no publican emisión abierta en ninguna lista pública: solo se ven en sus propias
   plataformas (Atresplayer, Mitele), con registro y DRM. Por eso no salen.
+- **Parrilla.** Una fila por canal con lo que emite ahora y lo que viene después (guía de
+  TDTChannels); OK sobre el canal o sobre un programa lo abre. Se abre con el botón de rejilla de la
+  cabecera o con el botón rojo del mando.
 - **Reproductor.** ExoPlayer (Media3) con HLS. Si la dirección principal de un canal falla, se
   prueba la siguiente antes de dar el aviso.
 - **Una sola interfaz** para móvil y tele: categorías en pastillas y canales en rejilla; en la tele

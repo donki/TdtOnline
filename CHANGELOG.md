@@ -1,5 +1,12 @@
 # Changelog — TDT Online
 
+## 2026.09.12.3 — Parrilla de programación
+
+- **Parrilla** (botón de rejilla en la cabecera, o el botón rojo del mando): una fila por canal con
+  el programa en curso (con barra de progreso) y los siguientes; favoritos delante. Con la cruceta
+  se baja de canal en canal y se recorre cada fila; OK sobre el canal o sobre un programa lo abre.
+- Probado en un emulador de Android TV (API 28, 1080p) además de la tablet.
+
 ## 2026.09.12.2 — Todos, buscador, Free-TV
 
 - **Grupo «Todos»:** todos los canales en una sola rejilla, después de Favoritos.
