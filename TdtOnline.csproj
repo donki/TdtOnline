@@ -26,6 +26,8 @@
   <Import Project="..\Shared\signing.props" />
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Las cuatro arquitecturas: muchos televisores y cajas Android TV siguen siendo ARM de 32 bits. -->
+    <RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
     <AndroidLinkMode>SdkOnly</AndroidLinkMode>
     <RunAOTCompilation>false</RunAOTCompilation>
   </PropertyGroup>
