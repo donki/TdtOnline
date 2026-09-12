@@ -2,3 +2,6 @@ bin/
 obj/
 *.user
 .vs/
+
+# APK generados para las releases de GitHub: no van al repo
+releases/
