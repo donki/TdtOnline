@@ -39,7 +39,6 @@ public sealed class MainActivity : AppCompatActivity
     private RecyclerView _categoriesView = null!;
     private RecyclerView _channelsView = null!;
     private TextView _status = null!;
-    private TextView _footer = null!;
     private TextView _lastChannelView = null!;
     private ImageButton _btnAbout = null!;
 
@@ -60,15 +59,14 @@ public sealed class MainActivity : AppCompatActivity
         _logos = new LogoLoader(cache);
         _prefs = new UserPreferences(this);
         _epg = new EpgService(cache);
+        Loc.Override = _prefs.Language;
 
         FindViewById<TextView>(Resource.Id.title)!.Text = Loc.Get("AppTitle");
         _status = FindViewById<TextView>(Resource.Id.status)!;
-        _footer = FindViewById<TextView>(Resource.Id.footer)!;
-        _footer.Text = Loc.Format("Source", ChannelCatalog.SourceName);
         _lastChannelView = FindViewById<TextView>(Resource.Id.last_channel)!;
         _btnAbout = FindViewById<ImageButton>(Resource.Id.btn_about)!;
 
-        _btnAbout.Click += (_, _) => AboutDialog.Show(this);
+        _btnAbout.Click += (_, _) => StartActivity(new Intent(this, typeof(AboutActivity)));
 
         _lastChannelView.Click += (_, _) =>
         {
@@ -255,7 +253,7 @@ public sealed class MainActivity : AppCompatActivity
     {
         if (keyCode == Keycode.Info)
         {
-            AboutDialog.Show(this);
+            StartActivity(new Intent(this, typeof(AboutActivity)));
             return true;
         }
 

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    «Acerca de» con la estructura canonica del catalogo (constitucion A.9), la misma que Music
+    Player: cabecera (logo, nombre, version, descripcion, editor), contacto, idioma, privacidad,
+    licencia y, el ultimo, el aviso legal con el recuadro rojo. Es una actividad y no un dialogo
+    para que en la tele se recorra con la cruceta y quepa entera.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Cabecera -->
+        <LinearLayout style="@style/AboutCard" android:gravity="center_horizontal">
+            <ImageView android:layout_width="84dp" android:layout_height="84dp"
+                android:src="@drawable/logo" android:contentDescription="@null" />
+            <TextView android:id="@+id/about_app_name" style="@style/AboutAppName" />
+            <TextView android:id="@+id/about_version" style="@style/AboutHint" android:textSize="15sp" />
+            <TextView android:id="@+id/about_description" style="@style/AboutHint" android:gravity="center" android:layout_marginTop="8dp" />
+            <TextView android:id="@+id/about_publisher" style="@style/AboutHint" android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <!-- Contacto -->
+        <LinearLayout style="@style/AboutCard">
+            <TextView android:id="@+id/contact_title" style="@style/AboutCardTitle" />
+            <Button android:id="@+id/contact_button" style="@style/AboutOutlineButton" android:layout_gravity="center_horizontal" />
+            <TextView android:id="@+id/contact_hint" style="@style/AboutHint" android:gravity="center" android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <!-- Idioma -->
+        <LinearLayout style="@style/AboutCard">
+            <TextView android:id="@+id/language_title" style="@style/AboutCardTitle" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <Button android:id="@+id/spanish_button" style="@style/AboutOutlineButton" android:layout_width="0dp" android:layout_weight="1" android:layout_marginEnd="5dp" />
+                <Button android:id="@+id/english_button" style="@style/AboutOutlineButton" android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="5dp" />
+            </LinearLayout>
+            <TextView android:id="@+id/language_hint" style="@style/AboutHint" android:gravity="center" android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <!-- Privacidad -->
+        <LinearLayout style="@style/AboutCard">
+            <TextView android:id="@+id/privacy_title" style="@style/AboutCardTitle" android:textColor="@color/success" />
+            <TextView android:id="@+id/privacy_text" style="@style/AboutBody" />
+        </LinearLayout>
+
+        <!-- Licencia -->
+        <LinearLayout style="@style/AboutCard">
+            <TextView android:id="@+id/license_title" style="@style/AboutCardTitle" />
+            <TextView android:id="@+id/license_text" style="@style/AboutBody" />
+            <TextView android:id="@+id/license_line" style="@style/AboutHint" android:textSize="11sp" android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <!-- Aviso legal: obligatorio y el ultimo. -->
+        <LinearLayout style="@style/AboutCard">
+            <TextView android:id="@+id/legal_title" style="@style/AboutCardTitle" android:textColor="@color/danger" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="15dp" android:background="@drawable/warning_surface">
+                <TextView android:id="@+id/legal_text1" style="@style/AboutBody" />
+                <TextView android:id="@+id/legal_text2" style="@style/AboutBody" android:layout_marginTop="10dp" />
+                <TextView android:id="@+id/warning_text" style="@style/AboutWarning" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Button android:id="@+id/close_button" style="@style/AboutOutlineButton" android:layout_gravity="end" android:layout_marginTop="4dp" />
+    </LinearLayout>
+</ScrollView>

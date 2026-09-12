@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fondo del aviso legal: el mismo ambar apagado que en las demas aplicaciones (WarningSurfaceDark). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/warning_surface" />
+    <corners android:radius="8dp" />
+</shape>

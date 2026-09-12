@@ -11,7 +11,6 @@ public static class Loc
         ["Loading"] = "Loading channels…",
         ["LoadFailed"] = "Could not load the channel list. Check the connection and press refresh.",
         ["ChannelsCount"] = "{0} channels",
-        ["Source"] = "Channel list by {0} (Apache 2.0) · official broadcaster streams · no ads, no trackers",
         ["PlayFailed"] = "This channel cannot be played right now.",
         ["Trying"] = "Trying another stream…",
         ["Refresh"] = "Refresh",
@@ -21,9 +20,24 @@ public static class Loc
         ["FavoriteTip"] = "Long-press to add/remove favorites",
         ["LastChannel"] = "Last watched: {0}",
         ["About"] = "About",
-        ["AboutAuthor"] = "Developed by Socratic · Josep Solà\n(jsoladelarosa@gmail.com)",
-        ["AboutLicense"] = "MIT License · Open Source Project",
-        ["AboutDescription"] = "Official live DTT channels over the internet. Channel list maintained by the community at TDTChannels (Apache 2.0).\n\n• Privacy first: 100% local processing, no accounts, no app ads, and no tracking or telemetry.\n• Broadcaster policy: Only open, unencrypted streams (HLS/DASH) are included. Channels with proprietary DRM or closed paywalls are not supported.",
+        ["AboutTitle"] = "About",
+        ["AboutDescription"] = "The DTT channels over the internet, on the phone, the tablet and Android TV.",
+        ["Publisher"] = "Socratic",
+        ["ContactTitle"] = "Contact",
+        ["ContactHint"] = "Questions, bugs and ideas are welcome.",
+        ["SectionLanguage"] = "Language",
+        ["LanguageHint"] = "The language applies right away.",
+        ["SpanishButton"] = "🇪🇸 Español",
+        ["EnglishButton"] = "🇺🇸 English",
+        ["PrivacyTitle"] = "Privacy",
+        ["PrivacyText"] = "TDT Online downloads the channel list from {0} (Apache 2.0), maintained by the community with the official streams of each broadcaster, and opens what each channel publishes: it hosts and relays nothing. Only open, unencrypted streams are listed. Favorites and the last channel stay on the device. There are no accounts, no ads and no analytics.",
+        ["LicenseTitle"] = "License",
+        ["LicenseText"] = "Free software released under the MIT license. The source code can be used, studied and modified by anyone. Third-party components and their licenses are listed in THIRD-PARTY-NOTICES.md.",
+        ["LicenseLine"] = "MIT License · Copyright © 2026 Socratic",
+        ["LegalTitle"] = "Legal notice",
+        ["LegalText1"] = "This software is provided \"as is\", without warranty of any kind, express or implied.",
+        ["LegalText2"] = "In no event shall the authors be liable for any claim, damages or other liability arising from the use of this software.",
+        ["WarningText"] = "⚠️ Use at your own risk",
         ["Close"] = "Close",
         ["NowPlaying"] = "Now: {0}",
     };
@@ -34,7 +48,6 @@ public static class Loc
         ["Loading"] = "Cargando canales…",
         ["LoadFailed"] = "No se ha podido cargar la lista de canales. Comprueba la conexión y pulsa actualizar.",
         ["ChannelsCount"] = "{0} canales",
-        ["Source"] = "Lista de canales de {0} (Apache 2.0) · emisiones oficiales de cada cadena · sin anuncios ni rastreadores",
         ["PlayFailed"] = "Este canal no se puede ver ahora mismo.",
         ["Trying"] = "Probando otra emisión…",
         ["Refresh"] = "Actualizar",
@@ -44,16 +57,37 @@ public static class Loc
         ["FavoriteTip"] = "Mantén pulsado para añadir/quitar de favoritos",
         ["LastChannel"] = "Último canal: {0}",
         ["About"] = "Acerca de",
-        ["AboutAuthor"] = "Desarrollado por Socratic · Josep Solà\n(jsoladelarosa@gmail.com)",
-        ["AboutLicense"] = "Licencia MIT · Código Abierto",
-        ["AboutDescription"] = "Canales oficiales de la TDT en directo por internet. Lista mantenida por la comunidad en TDTChannels (Apache 2.0).\n\n• Privacidad: Procesamiento 100% local, sin cuentas de usuario, sin anuncios propios y sin herramientas de rastreo ni analítica.\n• Política de emisiones: Solo se incluyen canales con emisión abierta y libre (HLS/DASH). Cadenas comerciales con DRM cerrado o plataformas propietarias quedan excluidas.",
+        ["AboutTitle"] = "Acerca de",
+        ["AboutDescription"] = "Los canales de la TDT por internet, en el móvil, la tablet y Android TV.",
+        ["Publisher"] = "Socratic",
+        ["ContactTitle"] = "Contacto",
+        ["ContactHint"] = "Dudas, fallos e ideas son bienvenidos.",
+        ["SectionLanguage"] = "Idioma",
+        ["LanguageHint"] = "El idioma se aplica de inmediato.",
+        ["SpanishButton"] = "🇪🇸 Español",
+        ["EnglishButton"] = "🇺🇸 English",
+        ["PrivacyTitle"] = "Privacidad",
+        ["PrivacyText"] = "TDT Online descarga la lista de canales de {0} (Apache 2.0), mantenida por la comunidad con las emisiones oficiales de cada cadena, y abre lo que cada cadena publica: no aloja ni reemite nada. Solo se listan emisiones abiertas y sin cifrar. Los favoritos y el último canal se quedan en el dispositivo. No hay cuentas, ni anuncios, ni analítica.",
+        ["LicenseTitle"] = "Licencia",
+        ["LicenseText"] = "Software libre publicado bajo la licencia MIT. Cualquiera puede usar, estudiar y modificar el código fuente. Los componentes de terceros y sus licencias están en THIRD-PARTY-NOTICES.md.",
+        ["LicenseLine"] = "MIT License · Copyright © 2026 Socratic",
+        ["LegalTitle"] = "Aviso legal",
+        ["LegalText1"] = "Este software se entrega «tal cual», sin garantías de ningún tipo, expresas o implícitas.",
+        ["LegalText2"] = "En ningún caso los autores serán responsables de reclamaciones, daños u otras responsabilidades derivadas del uso de este software.",
+        ["WarningText"] = "⚠️ Uso bajo su propio riesgo",
         ["Close"] = "Cerrar",
         ["NowPlaying"] = "Ahora: {0}",
     };
 
+    /// <summary>Idioma elegido en «Acerca de» («es» / «en»); vacio = el del sistema.</summary>
+    public static string Override { get; set; } = string.Empty;
+
+    public static string Language =>
+        Override.Length > 0 ? Override : CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "es" ? "es" : "en";
+
     public static string Get(string key)
     {
-        var table = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "es" ? Spanish : English;
+        var table = Language == "es" ? Spanish : English;
         return table.TryGetValue(key, out var value) ? value : English.GetValueOrDefault(key, string.Empty);
     }
 

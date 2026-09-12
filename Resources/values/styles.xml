@@ -13,6 +13,73 @@
         <item name="android:textColorSecondary">@color/text_secondary</item>
     </style>
 
+    <!-- Estilos de «Acerca de»: tarjeta, titulo de tarjeta, texto, pista, boton de contorno. -->
+    <style name="AboutCard">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">20dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+        <item name="android:background">@drawable/card_background</item>
+    </style>
+
+    <style name="AboutAppName">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:textSize">26sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/primary_light</item>
+    </style>
+
+    <style name="AboutCardTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">10dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/primary_light</item>
+    </style>
+
+    <style name="AboutBody">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:lineSpacingMultiplier">1.2</item>
+    </style>
+
+    <style name="AboutHint">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <style name="AboutWarning">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/on_primary</item>
+        <item name="android:background">@drawable/warning_badge</item>
+    </style>
+
+    <style name="AboutOutlineButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:background">@drawable/outline_button</item>
+        <item name="android:focusable">true</item>
+    </style>
+
     <style name="AppTheme.Player" parent="AppTheme">
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:windowFullscreen">true</item>

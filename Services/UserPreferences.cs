@@ -11,6 +11,7 @@ public sealed class UserPreferences
     private const string PrefsName = "tdt_preferences";
     private const string KeyFavorites = "favorites_list";
     private const string KeyLastChannel = "last_channel_name";
+    private const string KeyLanguage = "language";
 
     private readonly ISharedPreferences _prefs;
 
@@ -19,6 +20,13 @@ public sealed class UserPreferences
     public UserPreferences(Context context)
     {
         _prefs = context.GetSharedPreferences(PrefsName, FileCreationMode.Private)!;
+    }
+
+    /// <summary>Idioma elegido en «Acerca de»; vacio = el del sistema.</summary>
+    public string Language
+    {
+        get => _prefs.GetString(KeyLanguage, string.Empty) ?? string.Empty;
+        set => _prefs.Edit()!.PutString(KeyLanguage, value)!.Apply();
     }
 
     public HashSet<string> GetFavorites()
