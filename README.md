@@ -1,7 +1,7 @@
 # TDT Online
 
-Los canales de la TDT por internet, en el móvil, la tablet y **Android TV**. Primera versión
-(2026-09-11): lista de canales por categoría, logotipos y reproducción en directo.
+Los canales de la TDT por internet, en el móvil, la tablet y **Android TV**: lista de canales
+por categoría con buscador y favoritos, logotipos, guía de programación y reproducción en directo.
 
 ## Cómo funciona
 
@@ -11,6 +11,13 @@ Los canales de la TDT por internet, en el móvil, la tablet y **Android TV**. Pr
   caché un día y no aloja ni reemite nada: abre lo que cada cadena publica. Solo se enseñan los
   canales con alguna dirección HLS/DASH utilizable; las plantillas de servidores de anuncios se
   descartan.
+- **Segunda lista.** El grupo «Spain» de [Free-TV/IPTV](https://github.com/Free-TV/IPTV) se mezcla
+  con la anterior (las direcciones oficiales van primero). Como esa lista trae bastantes
+  direcciones muertas o que exigen sesión, cada una se comprueba en segundo plano al arrancar y
+  solo se enseñan las que responden; el resultado se guarda un día.
+- **Lo que no está.** Antena 3, laSexta, Neox, Nova, Mega, Telecinco, Cuatro, FDF, Energy, Divinity,
+  Be Mad, Boing y DMAX no publican emisión abierta en ninguna lista pública: solo se ven en sus
+  propias plataformas (Atresplayer, Mitele, dmax.marca.com), con registro y DRM. Por eso no salen.
 - **Reproductor.** ExoPlayer (Media3) con HLS. Si la dirección principal de un canal falla, se
   prueba la siguiente antes de dar el aviso.
 - **Una sola interfaz** para móvil y tele: categorías en pastillas y canales en rejilla; en la tele

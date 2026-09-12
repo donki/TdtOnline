@@ -39,6 +39,8 @@ public sealed class MainActivity : AppCompatActivity
     private RecyclerView _categoriesView = null!;
     private RecyclerView _channelsView = null!;
     private TextView _status = null!;
+    private TextView _emptyHint = null!;
+    private EditText _search = null!;
     private TextView _lastChannelView = null!;
     private ImageButton _btnAbout = null!;
 
@@ -63,6 +65,20 @@ public sealed class MainActivity : AppCompatActivity
 
         FindViewById<TextView>(Resource.Id.title)!.Text = Loc.Get("AppTitle");
         _status = FindViewById<TextView>(Resource.Id.status)!;
+        _emptyHint = FindViewById<TextView>(Resource.Id.empty_hint)!;
+        _search = FindViewById<EditText>(Resource.Id.search)!;
+        _search.Hint = Loc.Get("SearchHint");
+        _search.TextChanged += (_, _) => ApplySearch();
+        _search.EditorAction += (_, args) =>
+        {
+            // «Buscar» en el teclado: cerrar el teclado y pasar el foco a los resultados.
+            if (args.ActionId == Android.Views.InputMethods.ImeAction.Search)
+            {
+                HideKeyboard();
+                _channelsView.RequestFocus();
+                args.Handled = true;
+            }
+        };
         _lastChannelView = FindViewById<TextView>(Resource.Id.last_channel)!;
         _btnAbout = FindViewById<ImageButton>(Resource.Id.btn_about)!;
 
@@ -90,6 +106,13 @@ public sealed class MainActivity : AppCompatActivity
         _channelsView.SetAdapter(_channels);
 
         _epg.EpgLoaded += () => RunOnUiThread(() => _channels.NotifyDataSetChanged());
+        _catalog.Updated += categories => RunOnUiThread(() =>
+        {
+            // Ha terminado la comprobacion de Free-TV: entran los canales que faltaban.
+            _rawCategories = categories;
+            RebuildDisplayCategories(maintainCategory: true);
+            _status.Text = Loc.Format("ChannelsCount", _rawCategories.Sum(c => c.Channels.Count));
+        });
 
         _ = LoadAsync(forceRefresh: false);
         _ = _epg.LoadAsync();
@@ -167,30 +190,26 @@ public sealed class MainActivity : AppCompatActivity
         var list = new List<Category>();
         var favSet = _prefs.GetFavorites();
 
-        // 1. Categoria de favoritos si hay alguno
-        if (favSet.Count > 0)
+        // 1. Favoritos, siempre el primero aunque este vacio: es el grupo del usuario, y si no se
+        //    ve no hay forma de saber que existe ni de meter nada en el.
+        var favChannels = new List<Channel>();
+        var addedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var cat in _rawCategories)
         {
-            var favChannels = new List<Channel>();
-            var addedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var cat in _rawCategories)
+            foreach (var ch in cat.Channels)
             {
-                foreach (var ch in cat.Channels)
-                {
-                    if (favSet.Contains(ch.Name) && addedNames.Add(ch.Name))
-                    {
-                        favChannels.Add(ch);
-                    }
-                }
-            }
-
-            if (favChannels.Count > 0)
-            {
-                list.Add(new Category(Loc.Get("Favorites"), favChannels));
+                if (favSet.Contains(ch.Name) && addedNames.Add(ch.Name))
+                    favChannels.Add(ch);
             }
         }
 
-        // 2. Resto de categorias
+        list.Add(new Category(Loc.Get("Favorites"), favChannels));
+
+        // 2. Todos: cada canal una vez, en el orden de la lista, para verlos sin saber la categoria.
+        list.Add(new Category(Loc.Get("AllChannels"), AllChannels()));
+
+        // 3. Resto de categorias
         list.AddRange(_rawCategories);
 
         _displayCategories = list;
@@ -215,6 +234,23 @@ public sealed class MainActivity : AppCompatActivity
         ShowCategory(targetIndex);
     }
 
+    /// <summary>Todos los canales sin repetir (un canal puede estar en varias categorias).</summary>
+    private List<Channel> AllChannels()
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var all = new List<Channel>();
+        foreach (var cat in _rawCategories)
+        {
+            foreach (var ch in cat.Channels)
+            {
+                if (seen.Add(ch.Name))
+                    all.Add(ch);
+            }
+        }
+
+        return all;
+    }
+
     private void ShowCategory(int index)
     {
         if (index < 0 || index >= _displayCategories.Count)
@@ -222,8 +258,63 @@ public sealed class MainActivity : AppCompatActivity
 
         _selectedCategoryIndex = index;
         _categories.Select(index);
+
+        if (SearchText.Length > 0)
+        {
+            // Con texto en el buscador manda la busqueda; la categoria queda marcada para cuando se borre.
+            ApplySearch();
+            return;
+        }
+
         _channels.Submit(_displayCategories[index].Channels);
         _channelsView.ScrollToPosition(0);
+
+        // Favoritos vacio: se explica como se llena, en vez de dejar la rejilla en blanco.
+        var emptyFavorites = index == 0 && _displayCategories[index].Channels.Count == 0;
+        _emptyHint.Visibility = emptyFavorites ? ViewStates.Visible : ViewStates.Gone;
+        if (emptyFavorites)
+            _emptyHint.Text = Loc.Get("FavoriteTip");
+    }
+
+    private string SearchText => (_search.Text ?? string.Empty).Trim();
+
+    /// <summary>Filtra por nombre entre todos los canales; sin texto, vuelve a la categoria elegida.</summary>
+    private void ApplySearch()
+    {
+        var text = SearchText;
+        if (text.Length == 0)
+        {
+            ShowCategory(_selectedCategoryIndex);
+            return;
+        }
+
+        var key = Normalize(text);
+        var matches = AllChannels().Where(ch => Normalize(ch.Name).Contains(key, StringComparison.Ordinal)).ToList();
+        _channels.Submit(matches);
+        _channelsView.ScrollToPosition(0);
+
+        _emptyHint.Visibility = matches.Count == 0 ? ViewStates.Visible : ViewStates.Gone;
+        if (matches.Count == 0)
+            _emptyHint.Text = Loc.Format("NoResults", text);
+    }
+
+    /// <summary>Minusculas y sin acentos, para que «aragon» encuentre «Aragón TV».</summary>
+    private static string Normalize(string text)
+    {
+        var sb = new System.Text.StringBuilder(text.Length);
+        foreach (var ch in text.Normalize(System.Text.NormalizationForm.FormD))
+        {
+            if (char.IsLetterOrDigit(ch))
+                sb.Append(char.ToLowerInvariant(ch));
+        }
+
+        return sb.ToString();
+    }
+
+    private void HideKeyboard()
+    {
+        var imm = (Android.Views.InputMethods.InputMethodManager?)GetSystemService(InputMethodService);
+        imm?.HideSoftInputFromWindow(_search.WindowToken, 0);
     }
 
     private void ToggleFavorite(Channel channel)
@@ -375,7 +466,8 @@ public sealed class MainActivity : AppCompatActivity
 
             // Estado de favorito
             var isFav = prefs.IsFavorite(channel.Name);
-            h.FavoriteBadge.Visibility = isFav ? ViewStates.Visible : ViewStates.Gone;
+            h.FavoriteBadge.SetImageResource(isFav ? Resource.Drawable.ic_star_filled : Resource.Drawable.ic_star_outline);
+            h.FavoriteBadge.Alpha = isFav ? 1f : 0.55f;
 
             // Informacion del programa actual en emision segun EPG
             var prog = epg.GetCurrentProgram(channel.EpgId);

@@ -65,6 +65,25 @@
             android:contentDescription="@null" />
     </LinearLayout>
 
+    <!-- Buscador: filtra por nombre entre todos los canales, sea cual sea la categoria elegida. -->
+    <EditText
+        android:id="@+id/search"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="12dp"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:background="@drawable/chip_background"
+        android:drawableStart="@drawable/ic_search"
+        android:drawablePadding="10dp"
+        android:textSize="15sp"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_secondary"
+        android:inputType="text"
+        android:imeOptions="actionSearch|flagNoExtractUi"
+        android:maxLines="1"
+        android:importantForAutofill="no" />
+
     <!-- Categorias (ambitos de la lista): una fila de pastillas por la que se pasa con el mando. -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/categories"
@@ -72,6 +91,17 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:clipToPadding="false" />
+
+    <!-- Como se llena Favoritos, cuando esta vacio. -->
+    <TextView
+        android:id="@+id/empty_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textColor="@color/text_secondary"
+        android:visibility="gone" />
 
     <!-- Canales de la categoria elegida. -->
     <androidx.recyclerview.widget.RecyclerView

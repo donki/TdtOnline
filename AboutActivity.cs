@@ -46,7 +46,7 @@ public sealed class AboutActivity : AppCompatActivity
         FindViewById<TextView>(Resource.Id.language_hint)!.Text = Loc.Get("LanguageHint");
 
         FindViewById<TextView>(Resource.Id.privacy_title)!.Text = Loc.Get("PrivacyTitle");
-        FindViewById<TextView>(Resource.Id.privacy_text)!.Text = Loc.Format("PrivacyText", ChannelCatalog.SourceName);
+        FindViewById<TextView>(Resource.Id.privacy_text)!.Text = Loc.Format("PrivacyText", ChannelCatalog.SourceName, ChannelCatalog.FreeTvName);
 
         FindViewById<TextView>(Resource.Id.license_title)!.Text = Loc.Get("LicenseTitle");
         FindViewById<TextView>(Resource.Id.license_text)!.Text = Loc.Get("LicenseText");
