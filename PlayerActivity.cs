@@ -30,6 +30,7 @@ public sealed class PlayerActivity : AppCompatActivity
     public const string ExtraName = "name";
     public const string ExtraUrls = "urls";
     public const string ExtraEpgId = "epg_id";
+    public const string ExtraResolver = "resolver";
 
     private IExoPlayer? _player;
     private PlayerView _view = null!;
@@ -47,6 +48,11 @@ public sealed class PlayerActivity : AppCompatActivity
     private string? _epgId;
     private string[] _urls = [];
     private int _current;
+
+    // Cadenas que dan la direccion al ir a verlas (DMAX): cuando se pidio, para no pedirla en bucle.
+    private string? _resolver;
+    private DateTime _resolvedAt = DateTime.MinValue;
+    private CancellationTokenSource? _resolving;
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
@@ -67,6 +73,7 @@ public sealed class PlayerActivity : AppCompatActivity
         _channelName = Intent?.GetStringExtra(ExtraName) ?? string.Empty;
         _epgId = Intent?.GetStringExtra(ExtraEpgId);
         _urls = Intent?.GetStringArrayExtra(ExtraUrls) ?? [];
+        _resolver = Intent?.GetStringExtra(ExtraResolver);
 
         _channelTitle.Text = _channelName;
         UpdateFavoriteButton();
@@ -142,15 +149,40 @@ public sealed class PlayerActivity : AppCompatActivity
         _player = new ExoPlayerBuilder(this).Build()!;
         _player.AddListener(new Listener(this));
         _view.Player = _player;
-        PlayCurrent();
+
+        if (SonicLive.Handles(_resolver))
+            ResolveAndPlay();
+        else
+            PlayCurrent();
     }
 
     protected override void OnStop()
     {
+        _resolving?.Cancel();
+        _resolving = null;
         _view.Player = null;
         _player?.Release();
         _player = null;
         base.OnStop();
+    }
+
+    /// <summary>Pide la direccion de hoy al servicio de la cadena y, con ella, reproduce.</summary>
+    private async void ResolveAndPlay()
+    {
+        _resolving?.Cancel();
+        var cts = _resolving = new CancellationTokenSource();
+
+        _error.Text = Loc.Get("Trying");
+        _error.Visibility = ViewStates.Visible;
+
+        var urls = await SonicLive.ResolveAsync(_resolver!, cts.Token);
+        if (cts.IsCancellationRequested || _player is null)
+            return;
+
+        _urls = urls;
+        _current = 0;
+        _resolvedAt = DateTime.UtcNow;
+        PlayCurrent();
     }
 
     private void PlayCurrent()
@@ -171,6 +203,13 @@ public sealed class PlayerActivity : AppCompatActivity
     /// <summary>Falla la emision: a la siguiente direccion, si queda alguna.</summary>
     private void OnPlaybackError()
     {
+        // La direccion pedida al servicio caduca a los minutos: se pide otra una vez, no en bucle.
+        if (SonicLive.Handles(_resolver) && DateTime.UtcNow - _resolvedAt > TimeSpan.FromSeconds(30))
+        {
+            ResolveAndPlay();
+            return;
+        }
+
         _current++;
         if (_current < _urls.Length)
         {

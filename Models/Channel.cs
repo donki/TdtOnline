@@ -14,6 +14,12 @@ public sealed class Channel
     /// <summary>Direcciones HLS/DASH en orden de preferencia; si una falla se prueba la siguiente.</summary>
     public IReadOnlyList<string> StreamUrls { get; init; } = [];
 
+    /// <summary>
+    /// Cadena que no publica direccion fija: se le pide a su servicio al ir a verla
+    /// (<see cref="Services.SonicLive"/>, p. ej. <c>sonic:es:1</c> para DMAX). Nulo en las demas.
+    /// </summary>
+    public string? Resolver { get; init; }
+
     /// <summary>Categoria (ambito) de la lista: Generalistas, Deportivos, Cataluña…</summary>
     public string Category { get; init; } = string.Empty;
 

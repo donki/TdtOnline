@@ -4,7 +4,8 @@
 |---|---|---|---|
 | Lista TDTChannels (`https://www.tdtchannels.com/lists/tv.json`) | Nombres, logotipos y direcciones oficiales de los canales. Se descarga en tiempo de ejecución; no se distribuye con la app. | Apache 2.0 | LaQuay y colaboradores — <https://github.com/LaQuay/TDTChannels> |
 | Lista Free-TV/IPTV (`https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8`) | Grupo «Spain»: direcciones y logotipos de repuesto y canales que TDTChannels no tiene. Se descarga en tiempo de ejecución; no se distribuye con la app. | Sin licencia declarada (lista pública de enlaces; no se redistribuye) | Free-TV y colaboradores — <https://github.com/Free-TV/IPTV> |
-| AndroidX Media3 (ExoPlayer, HLS, UI) | Reproducción del vídeo en directo. | Apache 2.0 | Google / AOSP |
+| Servicio de reproducción de DMAX (`public.aurora.enhanced.live`, Warner Bros. Discovery) | Dirección de la emisión en directo de DMAX, pedida al ir a verla como hace su web. Sin cuenta ni DRM. | Servicio público de la cadena; no se redistribuye nada | Warner Bros. Discovery — <https://dmax.marca.com> |
+| AndroidX Media3 (ExoPlayer, HLS, DASH, UI) | Reproducción del vídeo en directo. | Apache 2.0 | Google / AOSP |
 | AndroidX RecyclerView, AppCompat | Listas y tema. | Apache 2.0 | Google / AOSP |
 
 Las emisiones son de cada cadena; la aplicación no las aloja ni las modifica.

@@ -15,9 +15,14 @@ por categoría con buscador y favoritos, logotipos, guía de programación y rep
   con la anterior (las direcciones oficiales van primero). Como esa lista trae bastantes
   direcciones muertas o que exigen sesión, cada una se comprueba en segundo plano al arrancar y
   solo se enseñan las que responden; el resultado se guarda un día.
+- **DMAX.** Su web no publica dirección fija: la pide a la plataforma de la cadena en cada
+  reproducción (un token anónimo y la información de reproducción del canal; sin cuenta y sin DRM).
+  La app hace esas mismas dos peticiones al ir a verlo (`Services/SonicLive.cs`). Solo aparece si la
+  comprobación de arranque ve el directo encendido; la cadena lo tiene apagado en su web desde al
+  menos septiembre de 2026, así que de momento no sale.
 - **Lo que no está.** Antena 3, laSexta, Neox, Nova, Mega, Telecinco, Cuatro, FDF, Energy, Divinity,
-  Be Mad, Boing y DMAX no publican emisión abierta en ninguna lista pública: solo se ven en sus
-  propias plataformas (Atresplayer, Mitele, dmax.marca.com), con registro y DRM. Por eso no salen.
+  Be Mad y Boing no publican emisión abierta en ninguna lista pública: solo se ven en sus propias
+  plataformas (Atresplayer, Mitele), con registro y DRM. Por eso no salen.
 - **Reproductor.** ExoPlayer (Media3) con HLS. Si la dirección principal de un canal falla, se
   prueba la siguiente antes de dar el aviso.
 - **Una sola interfaz** para móvil y tele: categorías en pastillas y canales en rejilla; en la tele

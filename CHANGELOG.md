@@ -11,9 +11,14 @@
   direcciones oficiales van primero). Antes de entrar, cada dirección se comprueba en segundo plano
   y solo se enseñan las que responden: la lista trae muchas muertas o que exigen sesión. Aporta
   Paramount Network, Negocios, 3/24, TVE Internacional… y repuestos para otros canales.
+- **DMAX por su propio servicio:** su web no publica dirección fija; la pide a la plataforma de la
+  cadena (dos peticiones públicas, sin cuenta, sin DRM) y la app hace lo mismo al ir a verlo
+  (`SonicLive`). Solo aparece si la comprobación de arranque ve el directo encendido: en septiembre
+  de 2026 la cadena lo tiene apagado en la web (la lista maestra contesta, los vídeos dan 404),
+  así que hoy no sale; saldrá solo cuando lo enciendan.
 - **Lo que no hay:** Antena 3, laSexta, Neox, Nova, Mega, Telecinco, Cuatro, FDF, Energy, Divinity,
-  Be Mad, Boing y DMAX no publican emisión abierta en ninguna lista; solo se ven en sus propias
-  plataformas (Atresplayer, Mitele, dmax.marca.com), con registro y DRM. No se pueden ofrecer.
+  Be Mad y Boing no publican emisión abierta en ninguna lista; solo se ven en sus propias
+  plataformas (Atresplayer, Mitele), con registro y DRM. No se pueden ofrecer.
 
 ## 2026.09.12.1 — Favoritos, Guía EPG, Último canal y Acerca de
 

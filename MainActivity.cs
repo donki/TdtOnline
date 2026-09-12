@@ -334,6 +334,8 @@ public sealed class MainActivity : AppCompatActivity
         var intent = new Intent(this, typeof(PlayerActivity));
         intent.PutExtra(PlayerActivity.ExtraName, channel.Name);
         intent.PutExtra(PlayerActivity.ExtraUrls, channel.StreamUrls.ToArray());
+        if (channel.Resolver is not null)
+            intent.PutExtra(PlayerActivity.ExtraResolver, channel.Resolver);
         if (!string.IsNullOrWhiteSpace(channel.EpgId))
             intent.PutExtra(PlayerActivity.ExtraEpgId, channel.EpgId);
 

@@ -19,6 +19,11 @@ namespace TdtOnline.Services;
 /// 3/24, TVE Internacional…) y direcciones de repuesto para otros. No arregla lo de Mediaset,
 /// Atresmedia ni DMAX: esas cadenas no publican emision abierta en ninguna lista.</item>
 /// </list>
+/// <para>Aparte, DMAX: no esta en ninguna lista porque su web no publica direccion fija, sino
+/// que la da su propio servicio en cada reproduccion (ver <see cref="SonicLive"/>). Se conserva la
+/// ficha de TDTChannels (nombre, logotipo, EPG) y se le pone el <c>Resolver</c> que sabe pedirla.
+/// Entra en la lista solo si la comprobacion en segundo plano ve que el directo esta encendido.</para>
+///
 /// <para>La aplicacion no aloja ni reemite nada; solo abre lo que hay publicado.</para>
 ///
 /// <para><b>Como se juntan.</b> Un canal de Free-TV con el mismo nombre (sin acentos, espacios ni
@@ -82,7 +87,7 @@ public sealed partial class ChannelCatalog
         var extras = m3u is null ? [] : ParseFreeTv(m3u);
         var verified = ReadVerified();
 
-        if (extras.Count > 0 && (forceRefresh || verified is null))
+        if (forceRefresh || verified is null)
         {
             // Sin comprobacion reciente: se devuelve lo que hay y se comprueba aparte.
             _ = Task.Run(() => VerifyAndNotifyAsync(json, extras, cancellationToken), cancellationToken);
@@ -97,7 +102,7 @@ public sealed partial class ChannelCatalog
         if (verified is not null && extras.Count > 0)
             Merge(categories, KeepVerified(extras, verified));
 
-        return Finish(categories);
+        return Finish(categories, verified);
     }
 
     private static List<Draft> KeepVerified(List<Draft> extras, HashSet<string> verified)
@@ -113,7 +118,7 @@ public sealed partial class ChannelCatalog
             kept.Add(new Draft
             {
                 Name = ch.Name, LogoUrl = ch.LogoUrl, Web = ch.Web, EpgId = ch.EpgId,
-                Category = ch.Category, Country = ch.Country, Urls = urls,
+                Category = ch.Category, Country = ch.Country, Urls = urls, Resolver = ch.Resolver,
             });
         }
 
@@ -167,6 +172,14 @@ public sealed partial class ChannelCatalog
         });
 
         await Task.WhenAll(tasks).ConfigureAwait(false);
+
+        // Las cadenas con resolvedor (DMAX): entran si su directo esta encendido ahora.
+        foreach (var resolver in Resolvers.Values)
+        {
+            if (await SonicLive.ProbeAsync(resolver, cancellationToken).ConfigureAwait(false))
+                ok.Add(resolver);
+        }
+
         if (cancellationToken.IsCancellationRequested)
             return;
 
@@ -215,7 +228,14 @@ public sealed partial class ChannelCatalog
         public string Category = string.Empty;
         public string Country = string.Empty;
         public List<string> Urls = [];
+        public string? Resolver;
     }
+
+    /// <summary>Cadenas cuya emision se pide a su servicio al reproducir (clave del nombre → especificacion).</summary>
+    private static readonly Dictionary<string, string> Resolvers = new(StringComparer.Ordinal)
+    {
+        ["dmax"] = SonicLive.Prefix + "es:1",
+    };
 
     private static List<(string Name, List<Draft> Channels)> ParseTdtChannels(string json)
     {
@@ -445,13 +465,19 @@ public sealed partial class ChannelCatalog
             categories.Add((FreeTvName, orphans));
     }
 
-    private static IReadOnlyList<Category> Finish(List<(string Name, List<Draft> Channels)> categories)
+    private static IReadOnlyList<Category> Finish(List<(string Name, List<Draft> Channels)> categories, HashSet<string>? verified)
     {
         var result = new List<Category>();
         foreach (var (name, drafts) in categories)
         {
+            foreach (var d in drafts)
+            {
+                if (d.Resolver is null && d.Country == "Spain" && Resolvers.TryGetValue(Key(d.Name), out var resolver))
+                    d.Resolver = resolver;
+            }
+
             var channels = drafts
-                .Where(d => d.Urls.Count > 0)
+                .Where(d => d.Urls.Count > 0 || (d.Resolver is not null && verified is not null && verified.Contains(d.Resolver)))
                 .Select(d => new Channel
                 {
                     Name = d.Name,
@@ -459,6 +485,7 @@ public sealed partial class ChannelCatalog
                     Web = d.Web,
                     EpgId = d.EpgId,
                     StreamUrls = d.Urls,
+                    Resolver = d.Resolver,
                     Category = d.Category,
                     Country = d.Country,
                 })
