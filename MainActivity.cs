@@ -33,13 +33,22 @@ public sealed class MainActivity : AppCompatActivity
 {
     private ChannelCatalog _catalog = null!;
     private LogoLoader _logos = null!;
+    private UserPreferences _prefs = null!;
+    private EpgService _epg = null!;
+
     private RecyclerView _categoriesView = null!;
     private RecyclerView _channelsView = null!;
     private TextView _status = null!;
     private TextView _footer = null!;
+    private TextView _lastChannelView = null!;
+    private ImageButton _btnAbout = null!;
+
     private ChannelAdapter _channels = null!;
     private CategoryAdapter _categories = null!;
-    private IReadOnlyList<Category> _loaded = [];
+
+    private IReadOnlyList<Category> _rawCategories = [];
+    private List<Category> _displayCategories = [];
+    private int _selectedCategoryIndex;
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
@@ -49,11 +58,28 @@ public sealed class MainActivity : AppCompatActivity
         var cache = CacheDir!.AbsolutePath;
         _catalog = new ChannelCatalog(cache);
         _logos = new LogoLoader(cache);
+        _prefs = new UserPreferences(this);
+        _epg = new EpgService(cache);
 
         FindViewById<TextView>(Resource.Id.title)!.Text = Loc.Get("AppTitle");
         _status = FindViewById<TextView>(Resource.Id.status)!;
         _footer = FindViewById<TextView>(Resource.Id.footer)!;
         _footer.Text = Loc.Format("Source", ChannelCatalog.SourceName);
+        _lastChannelView = FindViewById<TextView>(Resource.Id.last_channel)!;
+        _btnAbout = FindViewById<ImageButton>(Resource.Id.btn_about)!;
+
+        _btnAbout.Click += (_, _) => AboutDialog.Show(this);
+
+        _lastChannelView.Click += (_, _) =>
+        {
+            var last = _prefs.LastChannel;
+            if (string.IsNullOrWhiteSpace(last))
+                return;
+
+            var channel = FindChannelByName(last);
+            if (channel is not null)
+                Play(channel);
+        };
 
         _categoriesView = FindViewById<RecyclerView>(Resource.Id.categories)!;
         _categoriesView.SetLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.Horizontal, false));
@@ -62,10 +88,53 @@ public sealed class MainActivity : AppCompatActivity
 
         _channelsView = FindViewById<RecyclerView>(Resource.Id.channels)!;
         _channelsView.SetLayoutManager(new GridLayoutManager(this, ColumnsForWidth()));
-        _channels = new ChannelAdapter(_logos, Play);
+        _channels = new ChannelAdapter(_logos, _prefs, _epg, Play, ToggleFavorite);
         _channelsView.SetAdapter(_channels);
 
+        _epg.EpgLoaded += () => RunOnUiThread(() => _channels.NotifyDataSetChanged());
+
         _ = LoadAsync(forceRefresh: false);
+        _ = _epg.LoadAsync();
+    }
+
+    protected override void OnResume()
+    {
+        base.OnResume();
+        UpdateLastChannelUi();
+
+        // Si cambiaron los favoritos desde el reproductor, reconstruir categorias
+        if (_rawCategories.Count > 0)
+        {
+            RebuildDisplayCategories(maintainCategory: true);
+        }
+    }
+
+    private void UpdateLastChannelUi()
+    {
+        var last = _prefs.LastChannel;
+        if (!string.IsNullOrWhiteSpace(last))
+        {
+            _lastChannelView.Text = Loc.Format("LastChannel", last);
+            _lastChannelView.Visibility = ViewStates.Visible;
+        }
+        else
+        {
+            _lastChannelView.Visibility = ViewStates.Gone;
+        }
+    }
+
+    private Channel? FindChannelByName(string name)
+    {
+        foreach (var cat in _rawCategories)
+        {
+            foreach (var ch in cat.Channels)
+            {
+                if (string.Equals(ch.Name, name, StringComparison.OrdinalIgnoreCase))
+                    return ch;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>Tantas columnas como quepan a ~160 dp: cuatro en un movil, siete u ocho en una tele.</summary>
@@ -81,11 +150,9 @@ public sealed class MainActivity : AppCompatActivity
         _status.Text = Loc.Get("Loading");
         try
         {
-            _loaded = await _catalog.LoadAsync(forceRefresh);
-            _categories.Submit(_loaded);
-            if (_loaded.Count > 0)
-                ShowCategory(0);
-            _status.Text = Loc.Format("ChannelsCount", _loaded.Sum(c => c.Channels.Count));
+            _rawCategories = await _catalog.LoadAsync(forceRefresh);
+            RebuildDisplayCategories(maintainCategory: false);
+            _status.Text = Loc.Format("ChannelsCount", _rawCategories.Sum(c => c.Channels.Count));
         }
         catch (Exception)
         {
@@ -93,30 +160,110 @@ public sealed class MainActivity : AppCompatActivity
         }
     }
 
-    private void ShowCategory(int index)
+    private void RebuildDisplayCategories(bool maintainCategory)
     {
-        if (index < 0 || index >= _loaded.Count)
+        var currentSelectedName = _selectedCategoryIndex >= 0 && _selectedCategoryIndex < _displayCategories.Count
+            ? _displayCategories[_selectedCategoryIndex].Name
+            : null;
+
+        var list = new List<Category>();
+        var favSet = _prefs.GetFavorites();
+
+        // 1. Categoria de favoritos si hay alguno
+        if (favSet.Count > 0)
+        {
+            var favChannels = new List<Channel>();
+            var addedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var cat in _rawCategories)
+            {
+                foreach (var ch in cat.Channels)
+                {
+                    if (favSet.Contains(ch.Name) && addedNames.Add(ch.Name))
+                    {
+                        favChannels.Add(ch);
+                    }
+                }
+            }
+
+            if (favChannels.Count > 0)
+            {
+                list.Add(new Category(Loc.Get("Favorites"), favChannels));
+            }
+        }
+
+        // 2. Resto de categorias
+        list.AddRange(_rawCategories);
+
+        _displayCategories = list;
+        _categories.Submit(_displayCategories);
+
+        if (_displayCategories.Count == 0)
             return;
 
+        int targetIndex = 0;
+        if (maintainCategory && currentSelectedName is not null)
+        {
+            for (int i = 0; i < _displayCategories.Count; i++)
+            {
+                if (_displayCategories[i].Name == currentSelectedName)
+                {
+                    targetIndex = i;
+                    break;
+                }
+            }
+        }
+
+        ShowCategory(targetIndex);
+    }
+
+    private void ShowCategory(int index)
+    {
+        if (index < 0 || index >= _displayCategories.Count)
+            return;
+
+        _selectedCategoryIndex = index;
         _categories.Select(index);
-        _channels.Submit(_loaded[index].Channels);
+        _channels.Submit(_displayCategories[index].Channels);
         _channelsView.ScrollToPosition(0);
+    }
+
+    private void ToggleFavorite(Channel channel)
+    {
+        var isFav = _prefs.ToggleFavorite(channel.Name);
+        var msg = isFav ? Loc.Format("FavoriteAdded", channel.Name) : Loc.Format("FavoriteRemoved", channel.Name);
+        Toast.MakeText(this, msg, ToastLength.Short)?.Show();
+
+        RebuildDisplayCategories(maintainCategory: true);
     }
 
     private void Play(Channel channel)
     {
+        _prefs.LastChannel = channel.Name;
+        UpdateLastChannelUi();
+
         var intent = new Intent(this, typeof(PlayerActivity));
         intent.PutExtra(PlayerActivity.ExtraName, channel.Name);
         intent.PutExtra(PlayerActivity.ExtraUrls, channel.StreamUrls.ToArray());
+        if (!string.IsNullOrWhiteSpace(channel.EpgId))
+            intent.PutExtra(PlayerActivity.ExtraEpgId, channel.EpgId);
+
         StartActivity(intent);
     }
 
     public override bool OnKeyDown([Android.Runtime.GeneratedEnum] Keycode keyCode, KeyEvent? e)
     {
-        // En la tele, el boton de «menu» o el de repetir del mando vuelve a bajar la lista.
-        if (keyCode is Keycode.Menu or Keycode.Refresh)
+        if (keyCode == Keycode.Info)
+        {
+            AboutDialog.Show(this);
+            return true;
+        }
+
+        // En la tele, el boton de «menu» o el de refrescar del mando vuelve a bajar la lista.
+        if (keyCode == Keycode.Menu || ((int)Build.VERSION.SdkInt >= 28 && keyCode == Keycode.Refresh))
         {
             _ = LoadAsync(forceRefresh: true);
+            _ = _epg.LoadAsync(forceRefresh: true);
             return true;
         }
 
@@ -174,7 +321,12 @@ public sealed class MainActivity : AppCompatActivity
         private sealed class Holder(View view) : RecyclerView.ViewHolder(view);
     }
 
-    private sealed class ChannelAdapter(LogoLoader logos, Action<Channel> onPlay) : RecyclerView.Adapter
+    private sealed class ChannelAdapter(
+        LogoLoader logos,
+        UserPreferences prefs,
+        EpgService epg,
+        Action<Channel> onPlay,
+        Action<Channel> onToggleFavorite) : RecyclerView.Adapter
     {
         private IReadOnlyList<Channel> _items = [];
 
@@ -190,11 +342,29 @@ public sealed class MainActivity : AppCompatActivity
         {
             var view = LayoutInflater.From(parent.Context)!.Inflate(Resource.Layout.item_channel, parent, false)!;
             var holder = new Holder(view);
+
             view.Click += (_, _) =>
             {
                 if (holder.BindingAdapterPosition != RecyclerView.NoPosition)
                     onPlay(_items[holder.BindingAdapterPosition]);
             };
+
+            view.LongClick += (_, _) =>
+            {
+                if (holder.BindingAdapterPosition != RecyclerView.NoPosition)
+                {
+                    onToggleFavorite(_items[holder.BindingAdapterPosition]);
+                }
+            };
+
+            holder.FavoriteBadge.Click += (_, _) =>
+            {
+                if (holder.BindingAdapterPosition != RecyclerView.NoPosition)
+                {
+                    onToggleFavorite(_items[holder.BindingAdapterPosition]);
+                }
+            };
+
             return holder;
         }
 
@@ -204,6 +374,22 @@ public sealed class MainActivity : AppCompatActivity
             var channel = _items[position];
             h.Name.Text = channel.Name;
             logos.Load(h.Logo, channel.LogoUrl);
+
+            // Estado de favorito
+            var isFav = prefs.IsFavorite(channel.Name);
+            h.FavoriteBadge.Visibility = isFav ? ViewStates.Visible : ViewStates.Gone;
+
+            // Informacion del programa actual en emision segun EPG
+            var prog = epg.GetCurrentProgram(channel.EpgId);
+            if (prog is not null)
+            {
+                h.EpgProgram.Text = $"{prog.StartTime:HH:mm} {prog.Title}";
+                h.EpgProgram.Visibility = ViewStates.Visible;
+            }
+            else
+            {
+                h.EpgProgram.Visibility = ViewStates.Gone;
+            }
         }
 
         private sealed class Holder : RecyclerView.ViewHolder
@@ -212,11 +398,14 @@ public sealed class MainActivity : AppCompatActivity
             {
                 Logo = view.FindViewById<ImageView>(Resource.Id.logo)!;
                 Name = view.FindViewById<TextView>(Resource.Id.name)!;
+                FavoriteBadge = view.FindViewById<ImageView>(Resource.Id.favorite_badge)!;
+                EpgProgram = view.FindViewById<TextView>(Resource.Id.epg_program)!;
             }
 
             public ImageView Logo { get; }
-
             public TextView Name { get; }
+            public ImageView FavoriteBadge { get; }
+            public TextView EpgProgram { get; }
         }
     }
 }

@@ -110,6 +110,7 @@ public sealed class ChannelCatalog
                         Name = item.GetProperty("name").GetString() ?? string.Empty,
                         LogoUrl = item.TryGetProperty("logo", out var logo) ? logo.GetString() : null,
                         Web = item.TryGetProperty("web", out var web) ? web.GetString() : null,
+                        EpgId = item.TryGetProperty("epg_id", out var epgId) ? epgId.GetString() : null,
                         StreamUrls = urls,
                         Category = ambitName,
                         Country = countryName,

@@ -35,9 +35,15 @@ avdmanager create avd -n tv -k "system-images;android-34;android-tv;x86_64" -d t
 emulator -avd tv
 ```
 
+## Funcionalidades completadas (v2026.09.12.1)
+
+- Canales favoritos con pulsación larga / tecla de mando y categoría inicial dinámica «⭐ Favoritos».
+- Guía de programación (EPG) en directo desde TDTChannels (`TV.json`), visible en tarjetas y reproductor.
+- Persistencia de último canal visto para reanudación rápida.
+- Diálogo canónico «Acerca de» (autor Josep Solà, Socratic, licencia MIT, transparencia de emisiones abiertas).
+- Ficha oficial para Google Play redactada en `Mobile/GooglePlayConsole/TdtOnline/ficha.md`.
+
 ## Pendiente
 
-- Probar en un Android TV real o en el emulador (la primera versión se probó en la tablet).
-- Guía de programación (EPG): la lista trae `epg_id` y una dirección de EPG.
-- Favoritos y último canal visto.
-- Pantalla «Acerca de» canónica y ficha de Play.
+- Probar en un Android TV real o en el emulador con la cruceta del mando a distancia.
+- Generar capturas de pantalla de la interfaz de Android TV para la ficha de Google Play.

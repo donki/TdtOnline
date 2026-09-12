@@ -7,6 +7,7 @@ using AndroidX.Media3.Common;
 using AndroidX.Media3.ExoPlayer;
 using AndroidX.Media3.UI;
 using TdtOnline.Localization;
+using TdtOnline.Services;
 
 namespace TdtOnline;
 
@@ -28,10 +29,22 @@ public sealed class PlayerActivity : AppCompatActivity
 {
     public const string ExtraName = "name";
     public const string ExtraUrls = "urls";
+    public const string ExtraEpgId = "epg_id";
 
     private IExoPlayer? _player;
     private PlayerView _view = null!;
+    private View _overlay = null!;
     private TextView _error = null!;
+    private TextView _channelTitle = null!;
+    private TextView _epgInfo = null!;
+    private TextView _epgDesc = null!;
+    private ImageView _btnFavorite = null!;
+
+    private UserPreferences _prefs = null!;
+    private EpgService _epg = null!;
+
+    private string _channelName = string.Empty;
+    private string? _epgId;
     private string[] _urls = [];
     private int _current;
 
@@ -40,13 +53,87 @@ public sealed class PlayerActivity : AppCompatActivity
         base.OnCreate(savedInstanceState);
         SetContentView(Resource.Layout.activity_player);
 
+        _prefs = new UserPreferences(this);
+        _epg = new EpgService(CacheDir!.AbsolutePath);
+
         _view = FindViewById<PlayerView>(Resource.Id.player)!;
+        _overlay = FindViewById<View>(Resource.Id.channelOverlay)!;
         _error = FindViewById<TextView>(Resource.Id.error)!;
-        FindViewById<TextView>(Resource.Id.channelName)!.Text = Intent?.GetStringExtra(ExtraName) ?? string.Empty;
+        _channelTitle = FindViewById<TextView>(Resource.Id.channelName)!;
+        _epgInfo = FindViewById<TextView>(Resource.Id.epgInfo)!;
+        _epgDesc = FindViewById<TextView>(Resource.Id.epgDesc)!;
+        _btnFavorite = FindViewById<ImageView>(Resource.Id.btn_player_favorite)!;
+
+        _channelName = Intent?.GetStringExtra(ExtraName) ?? string.Empty;
+        _epgId = Intent?.GetStringExtra(ExtraEpgId);
         _urls = Intent?.GetStringArrayExtra(ExtraUrls) ?? [];
 
-        // El nombre del canal se enseña con los controles y se va con ellos.
-        _view.SetControllerVisibilityListener(new ControllerVisibility(FindViewById<TextView>(Resource.Id.channelName)!));
+        _channelTitle.Text = _channelName;
+        UpdateFavoriteButton();
+
+        _btnFavorite.Click += (_, _) => ToggleFavorite();
+
+        // Enlazar visibilidad de overlay con los controles del reproductor
+        _view.SetControllerVisibilityListener(new ControllerVisibility(_overlay));
+
+        // Cargar informacion EPG del canal
+        _ = LoadEpgAsync();
+
+        // Guardar como ultimo canal visto
+        if (!string.IsNullOrWhiteSpace(_channelName))
+        {
+            _prefs.LastChannel = _channelName;
+        }
+    }
+
+    private void UpdateFavoriteButton()
+    {
+        var isFav = _prefs.IsFavorite(_channelName);
+        _btnFavorite.SetImageResource(isFav ? Resource.Drawable.ic_star_filled : Resource.Drawable.ic_star_outline);
+    }
+
+    private void ToggleFavorite()
+    {
+        var added = _prefs.ToggleFavorite(_channelName);
+        UpdateFavoriteButton();
+        var msg = added ? Loc.Format("FavoriteAdded", _channelName) : Loc.Format("FavoriteRemoved", _channelName);
+        Toast.MakeText(this, msg, ToastLength.Short)?.Show();
+    }
+
+    private async Task LoadEpgAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_epgId))
+            return;
+
+        await _epg.LoadAsync().ConfigureAwait(false);
+
+        RunOnUiThread(() =>
+        {
+            var currentProg = _epg.GetCurrentProgram(_epgId);
+            if (currentProg is not null)
+            {
+                _epgInfo.Text = $"{currentProg.TimeRange} · {currentProg.Title}";
+                _epgInfo.Visibility = ViewStates.Visible;
+
+                if (!string.IsNullOrWhiteSpace(currentProg.Description))
+                {
+                    _epgDesc.Text = currentProg.Description;
+                    _epgDesc.Visibility = ViewStates.Visible;
+                }
+            }
+        });
+    }
+
+    public override bool OnKeyDown([Android.Runtime.GeneratedEnum] Keycode keyCode, KeyEvent? e)
+    {
+        // Teclas amarillas / de favoritos en mandos de TV
+        if (keyCode is Keycode.ProgYellow or Keycode.ButtonY)
+        {
+            ToggleFavorite();
+            return true;
+        }
+
+        return base.OnKeyDown(keyCode, e);
     }
 
     protected override void OnStart()
@@ -99,8 +186,8 @@ public sealed class PlayerActivity : AppCompatActivity
         public void OnPlayerError(PlaybackException? error) => owner.RunOnUiThread(owner.OnPlaybackError);
     }
 
-    private sealed class ControllerVisibility(TextView name) : Java.Lang.Object, PlayerView.IControllerVisibilityListener
+    private sealed class ControllerVisibility(View overlay) : Java.Lang.Object, PlayerView.IControllerVisibilityListener
     {
-        public void OnVisibilityChanged(int visibility) => name.Visibility = (ViewStates)visibility;
+        public void OnVisibilityChanged(int visibility) => overlay.Visibility = (ViewStates)visibility;
     }
 }

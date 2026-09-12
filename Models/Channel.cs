@@ -9,6 +9,8 @@ public sealed class Channel
 
     public string? Web { get; init; }
 
+    public string? EpgId { get; init; }
+
     /// <summary>Direcciones HLS/DASH en orden de preferencia; si una falla se prueba la siguiente.</summary>
     public IReadOnlyList<string> StreamUrls { get; init; } = [];
 
@@ -20,3 +22,11 @@ public sealed class Channel
 
 /// <summary>Una categoria con sus canales, tal como se enseña: una pastilla y una rejilla.</summary>
 public sealed record Category(string Name, IReadOnlyList<Channel> Channels);
+
+/// <summary>Programa emitido en un canal segun la guia de programacion (EPG).</summary>
+public sealed record EpgProgram(string Title, string Description, long StartEpochSeconds, long EndEpochSeconds)
+{
+    public DateTimeOffset StartTime => DateTimeOffset.FromUnixTimeSeconds(StartEpochSeconds).ToLocalTime();
+    public DateTimeOffset EndTime => DateTimeOffset.FromUnixTimeSeconds(EndEpochSeconds).ToLocalTime();
+    public string TimeRange => $"{StartTime:HH:mm} - {EndTime:HH:mm}";
+}
