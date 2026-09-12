@@ -1,5 +1,17 @@
 # Changelog — TDT Online
 
+## 2026.09.12.4 — Lista propia en GitHub y ajustes
+
+- **Lista propia:** los canales se descargan cada vez que arranca la app de
+  [donki/tdt-canales](https://github.com/donki/tdt-canales) (`canales.json`), generada con
+  `build.py` a partir de TDTChannels y de Free-TV ya comprobada. La comprobación de direcciones
+  deja de hacerse en el dispositivo; solo queda la del directo de DMAX.
+- **Ajustes** (rueda dentada en la cabecera): listas de canales con «+» para añadir direcciones
+  (JSON de tdt-canales, JSON de TDTChannels o M3U/M3U8; se reconocen por el contenido), papelera
+  para quitarlas, ↻ para volver a descargarlas ahora y ↶ para restaurar la lista por defecto. La
+  primera lista manda en el orden; las demás añaden canales y emisiones de repuesto.
+- Si una lista no baja y no hay copia, se avisa y se sigue con las demás.
+
 ## 2026.09.12.3 — Parrilla de programación
 
 - **Parrilla** (botón de rejilla en la cabecera, o el botón rojo del mando): una fila por canal con

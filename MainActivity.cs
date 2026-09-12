@@ -48,6 +48,7 @@ public sealed class MainActivity : AppCompatActivity
     private CategoryAdapter _categories = null!;
 
     private IReadOnlyList<Category> _rawCategories = [];
+    private int _loadedListsVersion;
     private List<Category> _displayCategories = [];
     private int _selectedCategoryIndex;
 
@@ -57,9 +58,9 @@ public sealed class MainActivity : AppCompatActivity
         SetContentView(Resource.Layout.activity_main);
 
         var cache = CacheDir!.AbsolutePath;
-        _catalog = new ChannelCatalog(cache);
-        _logos = new LogoLoader(cache);
         _prefs = new UserPreferences(this);
+        _catalog = new ChannelCatalog(cache, _prefs);
+        _logos = new LogoLoader(cache);
         _epg = new EpgService(cache);
         Loc.Override = _prefs.Language;
 
@@ -84,6 +85,8 @@ public sealed class MainActivity : AppCompatActivity
 
         _btnAbout.Click += (_, _) => StartActivity(new Intent(this, typeof(AboutActivity)));
         FindViewById<ImageButton>(Resource.Id.btn_guide)!.Click += (_, _) => StartActivity(new Intent(this, typeof(GuideActivity)));
+        FindViewById<ImageButton>(Resource.Id.btn_settings)!.Click += (_, _) => StartActivity(new Intent(this, typeof(SettingsActivity)));
+        _loadedListsVersion = _prefs.ListsVersion;
 
         _lastChannelView.Click += (_, _) =>
         {
@@ -123,6 +126,14 @@ public sealed class MainActivity : AppCompatActivity
     {
         base.OnResume();
         UpdateLastChannelUi();
+
+        // Si en Ajustes cambiaron las listas o se pidio refrescar, se vuelve a cargar todo.
+        if (_prefs.ListsVersion != _loadedListsVersion)
+        {
+            _loadedListsVersion = _prefs.ListsVersion;
+            _ = LoadAsync(forceRefresh: true);
+            return;
+        }
 
         // Si cambiaron los favoritos desde el reproductor, reconstruir categorias
         if (_rawCategories.Count > 0)
@@ -175,12 +186,19 @@ public sealed class MainActivity : AppCompatActivity
             _rawCategories = await _catalog.LoadAsync(forceRefresh);
             RebuildDisplayCategories(maintainCategory: false);
             _status.Text = Loc.Format("ChannelsCount", _rawCategories.Sum(c => c.Channels.Count));
+
+            if (_catalog.FailedLists.Count > 0)
+                Toast.MakeText(this, Loc.Format("ListsFailed", string.Join(", ", _catalog.FailedLists.Select(ShortUrl))), ToastLength.Long)?.Show();
+            if (_rawCategories.Count == 0)
+                _status.Text = Loc.Get("LoadFailed");
         }
         catch (Exception)
         {
             _status.Text = Loc.Get("LoadFailed");
         }
     }
+
+    private static string ShortUrl(string url) => Uri.TryCreate(url, UriKind.Absolute, out var u) ? u.Host + u.AbsolutePath : url;
 
     private void RebuildDisplayCategories(bool maintainCategory)
     {

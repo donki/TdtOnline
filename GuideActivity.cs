@@ -43,9 +43,9 @@ public sealed class GuideActivity : AppCompatActivity
         SetContentView(Resource.Layout.activity_guide);
 
         var cache = CacheDir!.AbsolutePath;
-        _catalog = new ChannelCatalog(cache);
-        _logos = new LogoLoader(cache);
         _prefs = new UserPreferences(this);
+        _catalog = new ChannelCatalog(cache, _prefs);
+        _logos = new LogoLoader(cache);
         _epg = new EpgService(cache);
         Loc.Override = _prefs.Language;
 

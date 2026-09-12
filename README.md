@@ -5,16 +5,15 @@ por categoría con buscador y favoritos, logotipos, guía de programación y rep
 
 ## Cómo funciona
 
-- **De dónde salen los canales.** De la lista de [TDTChannels](https://github.com/LaQuay/TDTChannels)
-  (Apache 2.0), mantenida por la comunidad, que recoge las emisiones **oficiales** de cada cadena
-  en internet (RTVE, autonómicas, temáticas…). La aplicación se la baja al arrancar, la guarda en
-  caché un día y no aloja ni reemite nada: abre lo que cada cadena publica. Solo se enseñan los
-  canales con alguna dirección HLS/DASH utilizable; las plantillas de servidores de anuncios se
-  descartan.
-- **Segunda lista.** El grupo «Spain» de [Free-TV/IPTV](https://github.com/Free-TV/IPTV) se mezcla
-  con la anterior (las direcciones oficiales van primero). Como esa lista trae bastantes
-  direcciones muertas o que exigen sesión, cada una se comprueba en segundo plano al arrancar y
-  solo se enseñan las que responden; el resultado se guarda un día.
+- **De dónde salen los canales.** De [donki/tdt-canales](https://github.com/donki/tdt-canales)
+  (`canales.json`), una lista propia que `build.py` genera a partir de
+  [TDTChannels](https://github.com/LaQuay/TDTChannels) (Apache 2.0; las emisiones **oficiales** de
+  cada cadena) y del grupo «Spain» de [Free-TV/IPTV](https://github.com/Free-TV/IPTV), comprobada
+  dirección a dirección desde España. La aplicación se la baja **cada vez que arranca** (con copia
+  para cuando no hay red) y no aloja ni reemite nada: abre lo que cada cadena publica.
+- **Ajustes.** Se pueden añadir más listas (JSON de tdt-canales, JSON de TDTChannels o M3U/M3U8),
+  quitarlas, volver a descargarlas ahora mismo o restaurar la lista por defecto. La primera lista
+  manda en el orden de categorías; las demás añaden canales y emisiones de repuesto.
 - **DMAX.** Su web no publica dirección fija: la pide a la plataforma de la cadena en cada
   reproducción (un token anónimo y la información de reproducción del canal; sin cuenta y sin DRM).
   La app hace esas mismas dos peticiones al ir a verlo (`Services/SonicLive.cs`). Solo aparece si la
