@@ -1,4 +1,4 @@
-using Android.Content;
+﻿using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
@@ -275,6 +275,14 @@ public sealed class MainActivity : AppCompatActivity
         if (index < 0 || index >= _displayCategories.Count)
             return;
 
+        // Si alguna de las dos listas esta en un pase de layout, se vuelve a intentar en el
+        // siguiente ciclo: notificar cambios ahora es justo lo que tumba la aplicacion.
+        if (_categoriesView.IsComputingLayout || _channelsView.IsComputingLayout)
+        {
+            _categoriesView.Post(() => ShowCategory(index));
+            return;
+        }
+
         _selectedCategoryIndex = index;
         _categories.Select(index);
 
@@ -411,10 +419,23 @@ public sealed class MainActivity : AppCompatActivity
             view.Click += (_, _) => onSelect(holder.BindingAdapterPosition);
 
             // En la tele basta con posarse encima: pasar por las categorias ya las abre.
+            //
+            // APLAZADO con Post: el cambio de foco llega en mitad del recorrido de foco de la
+            // propia RecyclerView (que es un pase de layout/scroll), y abrir la categoria ahi
+            // dentro llama a NotifyItemChanged sobre esa misma lista. Android lo prohibe y tira
+            // la aplicacion: «Cannot call this method while RecyclerView is computing a layout
+            // or scrolling». Era el «peta al navegar con el mando» de la tele Xiaomi (2026-09-13).
             view.FocusChange += (_, args) =>
             {
-                if (args.HasFocus && holder.BindingAdapterPosition != RecyclerView.NoPosition)
-                    onSelect(holder.BindingAdapterPosition);
+                if (!args.HasFocus)
+                    return;
+
+                view.Post(() =>
+                {
+                    var position = holder.BindingAdapterPosition;
+                    if (view.HasFocus && position != RecyclerView.NoPosition)
+                        onSelect(position);
+                });
             };
             return holder;
         }

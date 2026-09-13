@@ -1,5 +1,13 @@
 # Changelog — TDT Online
 
+## 2026.09.13.0 — Ya no se cierra al moverse con el mando
+
+- **Corregido:** al pasar la cruceta por las categorías la aplicación se cerraba
+  (`IllegalStateException: Cannot call this method while RecyclerView is computing a layout or
+  scrolling`): la categoría se abría dentro del propio cambio de foco, en mitad del pase de layout
+  de la lista, y avisar de cambios ahí está prohibido. Ahora se abre en el siguiente ciclo. Visto
+  en la tele Xiaomi y reproducido en el emulador de Android TV.
+
 ## 2026.09.12.4 — Lista propia en GitHub y ajustes
 
 - **Lista propia:** los canales se descargan cada vez que arranca la app de
