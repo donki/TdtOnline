@@ -34,6 +34,31 @@ por categoría con buscador y favoritos, logotipos, guía de programación y rep
 - Es **.NET para Android** sin MAUI: en una tele el foco tiene que ir de tarjeta en tarjeta y los
   controles nativos lo hacen solos.
 
+## Google Play
+
+`com.socratic.tdtonline` · pista de **pruebas cerradas (`alpha`)** · dada de alta el 2026-09-13.
+
+**La clave de subida es propia de esta app**, igual que en Task Manager: Play rechazó el primer
+bundle firmado con la clave compartida (`403 APK signed with a key that is also used to sign an
+APK that is delivered to users`), tres veces seguidas, así que se creó
+`Mobile\Shared\socratic-tdtonline-upload.keystore` (alias `tdtonline`, SHA1
+`9F:F6:1D:92:96:17:6A:66:5C:29:1C:67:ED:0B:51:AF:FD:F0:25:A5`, la misma contraseña que la
+compartida, fuera del repositorio). Una vez entró el primer bundle, esa clave quedó fijada. Lo que
+se instala por USB sigue firmado con la compartida (`Shared\signing.props`).
+
+```powershell
+$pass = (Get-Content D:\sOCProjects\password.txt -Raw).Trim()
+dotnet publish -c Release -f net10.0-android36.0 -p:AndroidPackageFormat=aab `
+  -p:AndroidSigningKeyStore="D:\sOCProjects\Mobile\Shared\socratic-tdtonline-upload.keystore" `
+  -p:AndroidSigningKeyAlias=tdtonline -p:AndroidSigningStorePass=$pass -p:AndroidSigningKeyPass=$pass
+pwsh ..\Hiker\Hiker\publish_aab_to_play.ps1 -PackageName com.socratic.tdtonline -AabPath <aab> `
+  -Track alpha -Status draft -SkipStoreListing -SkipStoreIcon -AssumeYes
+```
+
+La ficha (textos, icono, gráfico destacado, banner de TV y capturas de teléfono, tablet y TV)
+vive en `Mobile\GooglePlayConsole\TdtOnline\` y se sube con `python _COMUN/subir_ficha.py TdtOnline`.
+Mientras la app esté en borrador en la consola, las releases solo se pueden crear como `draft`.
+
 ## Compilar y probar
 
 ```
