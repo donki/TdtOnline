@@ -3,6 +3,11 @@
 Los canales de la TDT por internet, en el móvil, la tablet y **Android TV**: lista de canales
 por categoría con buscador y favoritos, logotipos, guía de programación y reproducción en directo.
 
+## Dónde conseguirla
+
+- **Google Play:** https://play.google.com/store/apps/details?id=com.socratic.tdtonline
+- **Releases de GitHub** (APK / EXE / MSIX de cada versión): https://github.com/donki/TdtOnline/releases
+
 ## Cómo funciona
 
 - **De dónde salen los canales.** De [donki/tdt-canales](https://github.com/donki/tdt-canales)
