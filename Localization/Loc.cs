@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace TdtOnline.Localization;
 
@@ -33,6 +33,7 @@ public static class Loc
         ["ListsFailed"] = "Could not download: {0}",
         ["ActionsHint"] = "↻ downloads the lists again · ↶ goes back to the default list",
         ["GuideEmpty"] = "No programme guide available right now.",
+        ["GuideLoading"] = "Loading the programme guide…",
         ["NowLabel"] = "Now",
         ["FavoriteAdded"] = "Added to favorites: {0}",
         ["FavoriteRemoved"] = "Removed from favorites: {0}",
@@ -89,6 +90,7 @@ public static class Loc
         ["ListsFailed"] = "No se ha podido descargar: {0}",
         ["ActionsHint"] = "↻ vuelve a descargar las listas · ↶ vuelve a la lista por defecto",
         ["GuideEmpty"] = "Ahora mismo no hay guía de programación.",
+        ["GuideLoading"] = "Cargando la guía de programación…",
         ["NowLabel"] = "Ahora",
         ["FavoriteAdded"] = "Añadido a favoritos: {0}",
         ["FavoriteRemoved"] = "Eliminado de favoritos: {0}",

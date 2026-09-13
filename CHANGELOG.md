@@ -1,5 +1,13 @@
 # Changelog — TDT Online
 
+## 2026.09.13.2 — Parrilla al instante y foco al volver del reproductor
+
+- **Parrilla:** se abre con la guía ya puesta. Cada pantalla creaba su propia guía y volvía a leer
+  y analizar los 3,7 MB; en la tele Xiaomi la parrilla decía «no hay guía» durante un minuto largo.
+  Ahora la guía es una sola para toda la aplicación, y mientras carga dice «Cargando la guía…».
+- **Foco:** al volver del reproductor, el foco vuelve a la tarjeta del canal que se estaba viendo,
+  en vez de irse a la primera de la rejilla.
+
 ## 2026.09.13.0 — Ya no se cierra al moverse con el mando
 
 - **Corregido:** al pasar la cruceta por las categorías la aplicación se cerraba

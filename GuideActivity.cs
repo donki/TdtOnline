@@ -1,4 +1,4 @@
-using Android.Content;
+﻿using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
@@ -46,7 +46,7 @@ public sealed class GuideActivity : AppCompatActivity
         _prefs = new UserPreferences(this);
         _catalog = new ChannelCatalog(cache, _prefs);
         _logos = new LogoLoader(cache);
-        _epg = new EpgService(cache);
+        _epg = EpgService.Shared(cache);
         Loc.Override = _prefs.Language;
 
         FindViewById<TextView>(Resource.Id.title)!.Text = Loc.Get("Guide");
@@ -106,7 +106,7 @@ public sealed class GuideActivity : AppCompatActivity
 
         _empty.Visibility = ordered.Count == 0 ? ViewStates.Visible : ViewStates.Gone;
         if (ordered.Count == 0)
-            _empty.Text = Loc.Get("GuideEmpty");
+            _empty.Text = Loc.Get(_epg.IsLoaded ? "GuideEmpty" : "GuideLoading");
     }
 
     private void Play(Channel channel)

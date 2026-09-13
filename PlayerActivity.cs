@@ -1,4 +1,4 @@
-using Android.Content;
+﻿using Android.Content;
 using TdtOnline.Models;
 using Android.Content.PM;
 using Android.OS;
@@ -75,7 +75,7 @@ public sealed class PlayerActivity : AppCompatActivity
         SetContentView(Resource.Layout.activity_player);
 
         _prefs = new UserPreferences(this);
-        _epg = new EpgService(CacheDir!.AbsolutePath);
+        _epg = EpgService.Shared(CacheDir!.AbsolutePath);
 
         _view = FindViewById<PlayerView>(Resource.Id.player)!;
         _overlay = FindViewById<View>(Resource.Id.channelOverlay)!;

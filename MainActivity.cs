@@ -52,6 +52,9 @@ public sealed class MainActivity : AppCompatActivity
     private List<Category> _displayCategories = [];
     private int _selectedCategoryIndex;
 
+    /// <summary>El canal que se abrio en el reproductor, para devolverle el foco al volver.</summary>
+    private Channel? _lastPlayed;
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
@@ -61,7 +64,7 @@ public sealed class MainActivity : AppCompatActivity
         _prefs = new UserPreferences(this);
         _catalog = new ChannelCatalog(cache, _prefs);
         _logos = new LogoLoader(cache);
-        _epg = new EpgService(cache);
+        _epg = EpgService.Shared(cache);
         Loc.Override = _prefs.Language;
 
         FindViewById<TextView>(Resource.Id.title)!.Text = Loc.Get("AppTitle");
@@ -140,6 +143,40 @@ public sealed class MainActivity : AppCompatActivity
         {
             RebuildDisplayCategories(maintainCategory: true);
         }
+
+        RestoreFocusToLastPlayed();
+    }
+
+    /// <summary>
+    /// Devuelve el foco a la tarjeta del canal que se acaba de ver.
+    /// </summary>
+    /// <remarks>
+    /// Al volver del reproductor la rejilla se reconstruye (por si cambiaron los favoritos) y eso
+    /// deja el foco en la primera tarjeta: en la tele habia que volver a buscar con la cruceta el
+    /// canal en el que se estaba (2026-09-13). Se hace con Post, despues de que la lista haya
+    /// colocado sus tarjetas, y con un segundo intento por si aun no estaba la de ese canal.
+    /// </remarks>
+    private void RestoreFocusToLastPlayed()
+    {
+        if (_lastPlayed is null)
+            return;
+
+        var position = _channels.IndexOf(_lastPlayed.Name);
+        if (position < 0)
+            return;
+
+        _channelsView.ScrollToPosition(position);
+        _channelsView.Post(() =>
+        {
+            if (!FocusCard(position))
+                _channelsView.PostDelayed(() => FocusCard(position), 150);
+        });
+    }
+
+    private bool FocusCard(int position)
+    {
+        var holder = _channelsView.FindViewHolderForAdapterPosition(position);
+        return holder is not null && holder.ItemView.RequestFocus();
     }
 
     private void UpdateLastChannelUi()
@@ -355,6 +392,7 @@ public sealed class MainActivity : AppCompatActivity
 
     private void Play(Channel channel)
     {
+        _lastPlayed = channel;
         _prefs.LastChannel = channel.Name;
         UpdateLastChannelUi();
         StartActivity(PlayerActivity.IntentFor(this, channel));
@@ -466,6 +504,18 @@ public sealed class MainActivity : AppCompatActivity
         }
 
         public override int ItemCount => _items.Count;
+
+        /// <summary>Posicion del canal con ese nombre en lo que se ve, o -1.</summary>
+        public int IndexOf(string name)
+        {
+            for (var i = 0; i < _items.Count; i++)
+            {
+                if (string.Equals(_items[i].Name, name, StringComparison.OrdinalIgnoreCase))
+                    return i;
+            }
+
+            return -1;
+        }
 
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {

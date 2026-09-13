@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using TdtOnline.Models;
 
 namespace TdtOnline.Services;
@@ -19,14 +19,46 @@ public sealed class EpgService
 
     public event Action? EpgLoaded;
 
-    public EpgService(string cacheDirectory)
+    private static EpgService? _shared;
+    private static readonly object _sharedLock = new();
+
+    /// <summary>Cuando se cargo la guia que hay en memoria; MinValue si no hay ninguna.</summary>
+    private DateTime _loadedAtUtc = DateTime.MinValue;
+
+    private EpgService(string cacheDirectory)
     {
         _cachePath = Path.Combine(cacheDirectory, "epg.json");
     }
 
+    /// <summary>
+    /// La guia del proceso: una sola para todas las pantallas.
+    /// </summary>
+    /// <remarks>
+    /// Antes cada actividad —principal, parrilla y reproductor— creaba la suya y volvia a leer y
+    /// analizar los 3,7 MB de guia. En la tele Xiaomi la parrilla salia «sin guia» durante un
+    /// minuto largo mientras la principal ya la tenia en memoria (2026-09-13). Compartiendola,
+    /// la parrilla se abre con la guia puesta.
+    /// </remarks>
+    public static EpgService Shared(string cacheDirectory)
+    {
+        lock (_sharedLock)
+            return _shared ??= new EpgService(cacheDirectory);
+    }
+
+    /// <summary>Hay guia cargada en memoria.</summary>
+    public bool IsLoaded => _loadedAtUtc != DateTime.MinValue;
+
     /// <summary>Descarga o lee de cache el EPG completo.</summary>
+    /// <remarks>Si ya esta en memoria y es reciente no se hace nada, pero se avisa igual para que
+    /// quien estuviera esperando se pinte.</remarks>
     public async Task LoadAsync(bool forceRefresh = false, CancellationToken cancellationToken = default)
     {
+        if (!forceRefresh && IsLoaded && DateTime.UtcNow - _loadedAtUtc < CacheDuration)
+        {
+            EpgLoaded?.Invoke();
+            return;
+        }
+
         string? json = null;
 
         if (!forceRefresh && File.Exists(_cachePath) && DateTime.UtcNow - File.GetLastWriteTimeUtc(_cachePath) < CacheDuration)
@@ -59,6 +91,7 @@ public sealed class EpgService
         if (!string.IsNullOrEmpty(json))
         {
             ParseEpg(json);
+            _loadedAtUtc = DateTime.UtcNow;
             EpgLoaded?.Invoke();
         }
     }
