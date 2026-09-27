@@ -12,7 +12,13 @@
   <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
   <uses-feature android:name="android.software.leanback" android:required="false" />
 
+  <!--
+    enableOnBackInvokedCallback="false": con targetSdk 36, Android 16 activa el «atras predictivo» y
+    el boton deja de llegar como antes (constitucion mobile 7). Asi atras va siempre por
+    OnBackPressedDispatcher: reproductor/parrilla/ajustes -> lista -> ocultar.
+  -->
   <application android:label="TDT Online"
+               android:enableOnBackInvokedCallback="false"
                android:icon="@mipmap/ic_launcher"
                android:banner="@drawable/banner"
                android:allowBackup="true"

@@ -58,6 +58,7 @@ public static class Loc
         ["LegalText1"] = "This software is provided \"as is\", without warranty of any kind, express or implied.",
         ["LegalText2"] = "In no event shall the authors be liable for any claim, damages or other liability arising from the use of this software.",
         ["WarningText"] = "⚠️ Use at your own risk",
+        ["UnexpectedError"] = "Something went wrong. It has been logged.",
         ["Close"] = "Close",
         ["NowPlaying"] = "Now: {0}",
     };
@@ -115,6 +116,7 @@ public static class Loc
         ["LegalText1"] = "Este software se entrega «tal cual», sin garantías de ningún tipo, expresas o implícitas.",
         ["LegalText2"] = "En ningún caso los autores serán responsables de reclamaciones, daños u otras responsabilidades derivadas del uso de este software.",
         ["WarningText"] = "⚠️ Uso bajo su propio riesgo",
+        ["UnexpectedError"] = "Algo ha fallado. Queda registrado.",
         ["Close"] = "Cerrar",
         ["NowPlaying"] = "Ahora: {0}",
     };

@@ -121,8 +121,42 @@ public sealed class MainActivity : AppCompatActivity
             _status.Text = Loc.Format("ChannelsCount", _rawCategories.Sum(c => c.Channels.Count));
         });
 
+        OnBackPressedDispatcher.AddCallback(this, new BackCallback(this));
+
         _ = LoadAsync(forceRefresh: false);
         _ = _epg.LoadAsync();
+    }
+
+    /// <summary>
+    /// Atras en la pantalla de inicio (constitucion mobile 7), con el gesto, el boton o el mando:
+    /// primero cierra el buscador (borra lo escrito o le quita el foco) y, si no hay nada abierto,
+    /// oculta la aplicacion sin cerrarla, para que al volver siga donde estaba.
+    /// </summary>
+    private void OnBack()
+    {
+        if (SearchText.Length > 0)
+        {
+            _search.Text = string.Empty;
+            HideKeyboard();
+            _search.ClearFocus();
+            _channelsView.RequestFocus();
+            return;
+        }
+
+        if (_search.HasFocus)
+        {
+            HideKeyboard();
+            _search.ClearFocus();
+            _channelsView.RequestFocus();
+            return;
+        }
+
+        MoveTaskToBack(true);
+    }
+
+    private sealed class BackCallback(MainActivity owner) : AndroidX.Activity.OnBackPressedCallback(true)
+    {
+        public override void HandleOnBackPressed() => owner.OnBack();
     }
 
     protected override void OnResume()

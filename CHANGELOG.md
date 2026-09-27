@@ -1,5 +1,23 @@
 # Changelog — TDT Online
 
+## 2026.09.28.0 — Errores que no cierran y botón de atrás
+
+- **Gestor global de excepciones** (constitución general 6.12): un error inesperado ya no cierra la
+  aplicación. Se registra con su traza (logcat y `files/errors.log`), sale un aviso breve en el
+  idioma elegido («Algo ha fallado. Queda registrado.») y se sigue. Ganchos
+  en una clase `Application` propia (`TdtApplication`): `AndroidEnvironment.UnhandledExceptionRaiser`,
+  `AppDomain.UnhandledException` y `TaskScheduler.UnobservedTaskException`.
+- **Botón de atrás** (constitución mobile 7), igual con el gesto, el botón del móvil y el del mando:
+  reproductor, parrilla, ajustes y acerca de vuelven a la lista; en la lista, si el buscador tiene
+  texto o foco, primero se cierra; si no, la aplicación se oculta (`MoveTaskToBack`) sin cerrarse.
+  `android:enableOnBackInvokedCallback="false"` para que Android 16 (targetSdk 36) no se salte la
+  lógica con el «atrás predictivo».
+
+*English:* unexpected errors no longer close the app: they are logged with their stack trace and a
+short notice is shown in the user's language. The back button (gesture, phone button or TV remote)
+goes from the player, guide, settings and about screens back to the list; on the list it first
+clears the search and otherwise hides the app instead of closing it.
+
 ## 2026.09.13.2 — Parrilla al instante y foco al volver del reproductor
 
 - **Parrilla:** se abre con la guía ya puesta. Cada pantalla creaba su propia guía y volvía a leer
