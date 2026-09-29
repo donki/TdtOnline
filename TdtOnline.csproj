@@ -17,8 +17,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>TdtOnline</RootNamespace>
     <ApplicationId>com.socratic.tdtonline</ApplicationId>
-    <ApplicationDisplayVersion>2026.09.28.0</ApplicationDisplayVersion>
-    <ApplicationVersion>2026092800</ApplicationVersion>
+    <ApplicationDisplayVersion>2026.09.29.0</ApplicationDisplayVersion>
+    <ApplicationVersion>2026092900</ApplicationVersion>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
   </PropertyGroup>

@@ -104,12 +104,18 @@ public sealed class MainActivity : AppCompatActivity
 
         _categoriesView = FindViewById<RecyclerView>(Resource.Id.categories)!;
         _categoriesView.SetLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.Horizontal, false));
-        _categories = new CategoryAdapter(ShowCategory);
+        _categories = new CategoryAdapter(ShowCategory, FocusFirstVisibleCard);
         _categoriesView.SetAdapter(_categories);
+
+        // Sin la animacion de «cambiado»: con ella, al marcar la pastilla elegida la RecyclerView
+        // pinta una copia nueva de la pastilla y la que tenia el foco desaparece; en la tele el foco
+        // saltaba solo a la rejilla y no se podia recorrer la fila de categorias con la cruceta.
+        if (_categoriesView.GetItemAnimator() is SimpleItemAnimator animator)
+            animator.SupportsChangeAnimations = false;
 
         _channelsView = FindViewById<RecyclerView>(Resource.Id.channels)!;
         _channelsView.SetLayoutManager(new GridLayoutManager(this, ColumnsForWidth()));
-        _channels = new ChannelAdapter(_logos, _prefs, _epg, Play, ToggleFavorite);
+        _channels = new ChannelAdapter(_logos, _prefs, _epg, Play, ToggleFavorite, CardKey);
         _channelsView.SetAdapter(_channels);
 
         _epg.EpgLoaded += () => RunOnUiThread(() => _channels.NotifyDataSetChanged());
@@ -162,6 +168,7 @@ public sealed class MainActivity : AppCompatActivity
     protected override void OnResume()
     {
         base.OnResume();
+        ApplyLanguage();
         UpdateLastChannelUi();
 
         // Si en Ajustes cambiaron las listas o se pidio refrescar, se vuelve a cargar todo.
@@ -207,10 +214,72 @@ public sealed class MainActivity : AppCompatActivity
         });
     }
 
+    /// <summary>
+    /// Abajo desde una pastilla de categoria: a la primera tarjeta que se ve. Sin esto, la cruceta
+    /// solo bajaba si justo debajo de la pastilla habia una tarjeta; desde una pastilla de la
+    /// derecha con pocos canales (Cantabria, cuatro) no pasaba nada (2026-09-29).
+    /// </summary>
+    private bool FocusFirstVisibleCard()
+    {
+        if (_channels.ItemCount == 0)
+            return false;
+
+        var layout = (GridLayoutManager)_channelsView.GetLayoutManager()!;
+        var first = Math.Max(0, layout.FindFirstCompletelyVisibleItemPosition());
+        if (FocusCard(first))
+            return true;
+
+        _channelsView.ScrollToPosition(0);
+        _channelsView.Post(() => FocusCard(0));
+        return true;
+    }
+
+    /// <summary>
+    /// La cruceta en una tarjeta. En los bordes de la rejilla Android buscaba el foco fuera de ella y
+    /// lo mandaba a una pastilla cualquiera, que al recibirlo abria otra categoria: derecha en la
+    /// ultima columna saltaba de Andalucia a Canarias (2026-09-29). Ahora a los lados el foco se
+    /// queda en la rejilla y arriba, desde la primera fila, vuelve a la pastilla de la categoria
+    /// que se esta viendo.
+    /// </summary>
+    private bool CardKey(int position, Keycode key)
+    {
+        var span = ((GridLayoutManager)_channelsView.GetLayoutManager()!).SpanCount;
+        var column = position % span;
+        switch (key)
+        {
+            case Keycode.DpadRight:
+                return column == span - 1 || position == _channels.ItemCount - 1;
+            case Keycode.DpadLeft:
+                return column == 0;
+            case Keycode.DpadUp when position < span:
+                var chip = _categoriesView.GetLayoutManager()?.FindViewByPosition(_selectedCategoryIndex);
+                if (chip is not null)
+                    return chip.RequestFocus();
+                _categoriesView.ScrollToPosition(_selectedCategoryIndex);
+                return false;
+            default:
+                return false;
+        }
+    }
+
     private bool FocusCard(int position)
     {
         var holder = _channelsView.FindViewHolderForAdapterPosition(position);
         return holder is not null && holder.ItemView.RequestFocus();
+    }
+
+    /// <summary>
+    /// Vuelve a poner los textos fijos de la pantalla en el idioma elegido. Al cambiar de idioma en
+    /// «Acerca de» y volver, las pastillas ya salian traducidas pero el buscador y el recuento se
+    /// quedaban en el idioma anterior (2026-09-29).
+    /// </summary>
+    private void ApplyLanguage()
+    {
+        Loc.Override = _prefs.Language;
+        FindViewById<TextView>(Resource.Id.title)!.Text = Loc.Get("AppTitle");
+        _search.Hint = Loc.Get("SearchHint");
+        if (_rawCategories.Count > 0)
+            _status.Text = Loc.Format("ChannelsCount", _rawCategories.Sum(c => c.Channels.Count));
     }
 
     private void UpdateLastChannelUi()
@@ -223,7 +292,8 @@ public sealed class MainActivity : AppCompatActivity
         }
         else
         {
-            _lastChannelView.Visibility = ViewStates.Gone;
+            // Invisible y no Gone: asi el recuento de canales se queda a la derecha de su fila.
+            _lastChannelView.Visibility = ViewStates.Invisible;
         }
     }
 
@@ -458,11 +528,18 @@ public sealed class MainActivity : AppCompatActivity
         return base.OnKeyDown(keyCode, e);
     }
 
+    /// <summary>Escucha las teclas al pulsarlas (no al soltarlas); true = tecla atendida.</summary>
+    private sealed class KeyListener(Func<Keycode, KeyEvent, bool> onKeyDown) : Java.Lang.Object, View.IOnKeyListener
+    {
+        public bool OnKey(View? v, [Android.Runtime.GeneratedEnum] Keycode keyCode, KeyEvent? e) =>
+            e is not null && e.Action == KeyEventActions.Down && onKeyDown(keyCode, e);
+    }
+
     // =====================================================================
     //  Adaptadores
     // =====================================================================
 
-    private sealed class CategoryAdapter(Action<int> onSelect) : RecyclerView.Adapter
+    private sealed class CategoryAdapter(Action<int> onSelect, Func<bool> onDown) : RecyclerView.Adapter
     {
         private IReadOnlyList<Category> _items = [];
         private int _selected;
@@ -488,6 +565,7 @@ public sealed class MainActivity : AppCompatActivity
         {
             var view = LayoutInflater.From(parent.Context)!.Inflate(Resource.Layout.item_category, parent, false)!;
             var holder = new Holder(view);
+            view.SetOnKeyListener(new KeyListener((key, _) => key == Keycode.DpadDown && onDown()));
             view.Click += (_, _) => onSelect(holder.BindingAdapterPosition);
 
             // En la tele basta con posarse encima: pasar por las categorias ya las abre.
@@ -527,7 +605,8 @@ public sealed class MainActivity : AppCompatActivity
         UserPreferences prefs,
         EpgService epg,
         Action<Channel> onPlay,
-        Action<Channel> onToggleFavorite) : RecyclerView.Adapter
+        Action<Channel> onToggleFavorite,
+        Func<int, Keycode, bool> onKey) : RecyclerView.Adapter
     {
         private IReadOnlyList<Channel> _items = [];
 
@@ -555,6 +634,8 @@ public sealed class MainActivity : AppCompatActivity
         {
             var view = LayoutInflater.From(parent.Context)!.Inflate(Resource.Layout.item_channel, parent, false)!;
             var holder = new Holder(view);
+            view.SetOnKeyListener(new KeyListener((key, _) =>
+                holder.BindingAdapterPosition != RecyclerView.NoPosition && onKey(holder.BindingAdapterPosition, key)));
 
             view.Click += (_, _) =>
             {

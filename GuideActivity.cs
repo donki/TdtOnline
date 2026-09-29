@@ -119,6 +119,25 @@ public sealed class GuideActivity : AppCompatActivity
     //  Adaptadores
     // =====================================================================
 
+    /// <summary>
+    /// Agranda una pieza de alto fijo (y, si se pide, de ancho fijo) en la proporcion de la letra del
+    /// sistema, cuando es mayor del 100 %. Las filas de la parrilla miden 92dp para que el canal y
+    /// sus programas queden alineados; con la letra al 145 % el titulo del programa no cabia y salia
+    /// cortado por abajo (2026-09-29).
+    /// </summary>
+    private static void FitToFontScale(View view, bool width)
+    {
+        var scale = view.Resources?.Configuration?.FontScale ?? 1f;
+        if (scale <= 1f || view.LayoutParameters is not { } lp)
+            return;
+
+        if (lp.Height > 0)
+            lp.Height = (int)(lp.Height * scale);
+        if (width && lp.Width > 0)
+            lp.Width = (int)(lp.Width * scale);
+        view.LayoutParameters = lp;
+    }
+
     private sealed class RowAdapter(LogoLoader logos, EpgService epg, Action<Channel> onPlay) : RecyclerView.Adapter
     {
         private IReadOnlyList<Channel> _items = [];
@@ -138,6 +157,8 @@ public sealed class GuideActivity : AppCompatActivity
         {
             var view = LayoutInflater.From(parent.Context)!.Inflate(Resource.Layout.item_guide_row, parent, false)!;
             var holder = new Holder(view);
+            FitToFontScale(holder.Channel, width: false);
+            FitToFontScale(holder.Programs, width: false);
             holder.Programs.SetLayoutManager(new LinearLayoutManager(parent.Context, LinearLayoutManager.Horizontal, false));
             holder.Programs.SetRecycledViewPool(_pool);
             holder.Programs.SetAdapter(new ProgramAdapter(() => onPlay(_items[holder.BindingAdapterPosition])));
@@ -191,6 +212,7 @@ public sealed class GuideActivity : AppCompatActivity
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {
             var view = LayoutInflater.From(parent.Context)!.Inflate(Resource.Layout.item_guide_program, parent, false)!;
+            FitToFontScale(view, width: true);
             view.Click += (_, _) => onPlay();
             return new Holder(view);
         }

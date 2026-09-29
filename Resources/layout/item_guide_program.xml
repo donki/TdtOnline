@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Con la letra del sistema por encima del 100 %, GuideActivity.FitToFontScale agranda el alto
+     (y el ancho de las tarjetas de programa) en la misma proporcion: con 92dp fijos y la letra al
+     145 % el titulo del programa salia cortado por abajo (2026-09-29). En sp no vale: desde
+     Android 14 la escala de letra no es lineal y un tamano grande apenas crece. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="230dp"
     android:layout_height="92dp"

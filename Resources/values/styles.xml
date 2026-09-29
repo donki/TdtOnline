@@ -70,7 +70,12 @@
 
     <style name="AboutOutlineButton">
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">48dp</item>
+        <!-- Alto minimo y no fijo: con la letra grande del sistema un texto en dos lineas no cabia
+             en 48dp y salia cortado. -->
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
         <item name="android:paddingStart">20dp</item>
         <item name="android:paddingEnd">20dp</item>
         <item name="android:textSize">15sp</item>

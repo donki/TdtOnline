@@ -6,14 +6,17 @@
     para que en la tele se recorra con la cruceta y quepa entera.
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:padding="16dp">
+    android:fitsSystemWindows="true">
 
+    <!-- El relleno va en la columna: en la vista con fitsSystemWindows Android lo sustituye por el
+         hueco de las barras del sistema y se quedaba sin margen a los lados. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="16dp"
         android:orientation="vertical">
 
         <!-- Cabecera -->
@@ -29,7 +32,11 @@
         <!-- Contacto -->
         <LinearLayout style="@style/AboutCard">
             <TextView android:id="@+id/contact_title" style="@style/AboutCardTitle" />
-            <Button android:id="@+id/contact_button" style="@style/AboutOutlineButton" android:layout_gravity="center_horizontal" />
+            <!-- El correo en una linea: con la letra grande del sistema se partia en «…@gmail / .com» y
+                 la segunda linea quedaba cortada por el alto del boton; ahora encoge la letra. -->
+            <Button android:id="@+id/contact_button" style="@style/AboutOutlineButton" android:layout_width="match_parent"
+                android:maxLines="1" app:autoSizeTextType="uniform" app:autoSizeMinTextSize="10sp"
+                app:autoSizeMaxTextSize="15sp" app:autoSizeStepGranularity="1sp" />
             <TextView android:id="@+id/contact_hint" style="@style/AboutHint" android:gravity="center" android:layout_marginTop="8dp" />
         </LinearLayout>
 

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Texto que se puede pulsar (el ultimo canal): sin fondo, y con el foco del mando, el mismo borde de
+     marca que las tarjetas; sin el, en la tele no se veia donde estaba el foco. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/card_focused" />
+            <corners android:radius="8dp" />
+            <stroke android:width="2dp" android:color="@color/primary_light" />
+        </shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/card_focused" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+    <item android:drawable="@android:color/transparent" />
+</selector>

@@ -1,5 +1,26 @@
 # Changelog — TDT Online
 
+## 2026.09.29.0 — Letra grande y cruceta en la tele
+
+- **Letra grande del sistema (145 %):** la cabecera ya no parte palabras («TDT Onli / ne», «Last
+  watch / ed: …»). El título va en una línea con los botones y encoge la letra si no cabe; debajo,
+  el último canal (recortado con «…») y el recuento de canales. Además: la pantalla principal, la
+  parrilla y «Acerca de» vuelven a tener margen a los lados (el logo iba pegado al borde); las filas
+  de la parrilla crecen con la letra y el título del programa ya no sale cortado; en «Acerca de» el
+  correo cabe en una línea y los botones de idioma no se cortan.
+- **Idioma:** al cambiarlo en «Acerca de» y volver, el buscador y el recuento también cambian.
+- **Mando de la tele:** la fila de categorías se recorre con la cruceta sin que el foco salte solo a
+  la rejilla; abajo desde cualquier categoría va a las tarjetas; en los bordes de la rejilla el
+  foco ya no se escapa a otra categoría, y arriba desde la primera fila vuelve a la categoría que se
+  está viendo. El «último canal» muestra el foco.
+
+*English:* with the system's large font (145 %) the header no longer splits words: the title stays
+on one line and shrinks if needed, and the last watched channel and the channel count go on the
+line below. Side margins are back, TV guide rows grow with the font, the About e-mail and language
+buttons are no longer cut. Changing the language now also updates the search box and the count.
+On the TV remote, the category row can be walked with the D-pad, down from any category goes to the
+channel cards, and focus no longer escapes the grid into another category.
+
 ## 2026.09.28.0 — Errores que no cierran y botón de atrás
 
 - **Gestor global de excepciones** (constitución general 6.12): un error inesperado ya no cierra la

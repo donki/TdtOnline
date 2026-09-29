@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- fitsSystemWindows va en este marco y el relleno de 16dp en la columna de dentro: en la misma
+     vista, Android cambia el relleno por el hueco de las barras del sistema y la pantalla se quedaba
+     sin margen a los lados (el logo pegado al borde, 2026-09-29). -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:fitsSystemWindows="true">
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,39 +26,23 @@
             android:src="@drawable/logo"
             android:contentDescription="@null" />
 
-        <LinearLayout
+        <!-- Una sola linea: si no cabe, la letra encoge (hasta 14sp) y, si aun asi no, «…». -->
+        <TextView
+            android:id="@+id/title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="12dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary" />
-
-            <TextView
-                android:id="@+id/last_channel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/primary_light"
-                android:visibility="gone"
-                android:focusable="true"
-                android:clickable="true" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="12dp"
-            android:textSize="13sp"
-            android:textColor="@color/text_secondary" />
+            android:layout_marginEnd="8dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMinTextSize="14sp"
+            app:autoSizeMaxTextSize="22sp"
+            app:autoSizeStepGranularity="1sp"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
 
         <ImageButton
             android:id="@+id/btn_settings"
@@ -89,6 +81,45 @@
             android:focusable="true"
             android:clickable="true"
             android:contentDescription="@null" />
+    </LinearLayout>
+
+    <!-- Ultimo canal (se toca para volver a el) y recuento, cada uno en una linea. Antes iban en la
+         misma fila que el titulo y los botones, y con la letra grande del sistema (145 %) no cabian:
+         salia «TDT Onli / ne» y «Last watch / ed: …», partidos a mitad de palabra (2026-09-29). -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/last_channel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="-8dp"
+            android:layout_marginEnd="12dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:background="@drawable/link_background"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="13sp"
+            android:textColor="@color/primary_light"
+            android:visibility="invisible"
+            android:focusable="true"
+            android:clickable="true" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary" />
     </LinearLayout>
 
     <!-- Buscador: filtra por nombre entre todos los canales, sea cual sea la categoria elegida. -->
@@ -139,3 +170,4 @@
         android:clipToPadding="false" />
 
 </LinearLayout>
+</FrameLayout>
