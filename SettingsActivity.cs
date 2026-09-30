@@ -102,14 +102,15 @@ public sealed class SettingsActivity : AppCompatActivity
     private void AddList()
     {
         var text = (_newUrl.Text ?? string.Empty).Trim();
-        if (!Uri.TryCreate(text, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https"))
+        var urls = _prefs.ListUrls.ToList();
+        var check = ChannelLists.CheckNewList(text, urls);
+        if (check == ChannelLists.NewListCheck.Invalid)
         {
             Toast.MakeText(this, Loc.Get("ListInvalid"), ToastLength.Short)?.Show();
             return;
         }
 
-        var urls = _prefs.ListUrls.ToList();
-        if (urls.Contains(text, StringComparer.OrdinalIgnoreCase))
+        if (check == ChannelLists.NewListCheck.Exists)
         {
             Toast.MakeText(this, Loc.Get("ListExists"), ToastLength.Short)?.Show();
             return;

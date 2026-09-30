@@ -339,7 +339,7 @@ public sealed class MainActivity : AppCompatActivity
         }
     }
 
-    private static string ShortUrl(string url) => Uri.TryCreate(url, UriKind.Absolute, out var u) ? u.Host + u.AbsolutePath : url;
+    private static string ShortUrl(string url) => ChannelLists.ShortUrl(url);
 
     private void RebuildDisplayCategories(bool maintainCategory)
     {
@@ -348,21 +348,9 @@ public sealed class MainActivity : AppCompatActivity
             : null;
 
         var list = new List<Category>();
-        var favSet = _prefs.GetFavorites();
-
         // 1. Favoritos, siempre el primero aunque este vacio: es el grupo del usuario, y si no se
         //    ve no hay forma de saber que existe ni de meter nada en el.
-        var favChannels = new List<Channel>();
-        var addedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var cat in _rawCategories)
-        {
-            foreach (var ch in cat.Channels)
-            {
-                if (favSet.Contains(ch.Name) && addedNames.Add(ch.Name))
-                    favChannels.Add(ch);
-            }
-        }
+        var favChannels = ChannelLists.Favorites(_rawCategories, _prefs.GetFavorites());
 
         list.Add(new Category(Loc.Get("Favorites"), favChannels));
 
@@ -395,21 +383,7 @@ public sealed class MainActivity : AppCompatActivity
     }
 
     /// <summary>Todos los canales sin repetir (un canal puede estar en varias categorias).</summary>
-    private List<Channel> AllChannels()
-    {
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var all = new List<Channel>();
-        foreach (var cat in _rawCategories)
-        {
-            foreach (var ch in cat.Channels)
-            {
-                if (seen.Add(ch.Name))
-                    all.Add(ch);
-            }
-        }
-
-        return all;
-    }
+    private List<Channel> AllChannels() => ChannelLists.AllChannels(_rawCategories);
 
     private void ShowCategory(int index)
     {
@@ -456,27 +430,13 @@ public sealed class MainActivity : AppCompatActivity
             return;
         }
 
-        var key = Normalize(text);
-        var matches = AllChannels().Where(ch => Normalize(ch.Name).Contains(key, StringComparison.Ordinal)).ToList();
+        var matches = ChannelLists.Search(_rawCategories, text);
         _channels.Submit(matches);
         _channelsView.ScrollToPosition(0);
 
         _emptyHint.Visibility = matches.Count == 0 ? ViewStates.Visible : ViewStates.Gone;
         if (matches.Count == 0)
             _emptyHint.Text = Loc.Format("NoResults", text);
-    }
-
-    /// <summary>Minusculas y sin acentos, para que «aragon» encuentre «Aragón TV».</summary>
-    private static string Normalize(string text)
-    {
-        var sb = new System.Text.StringBuilder(text.Length);
-        foreach (var ch in text.Normalize(System.Text.NormalizationForm.FormD))
-        {
-            if (char.IsLetterOrDigit(ch))
-                sb.Append(char.ToLowerInvariant(ch));
-        }
-
-        return sb.ToString();
     }
 
     private void HideKeyboard()

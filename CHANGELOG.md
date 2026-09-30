@@ -1,5 +1,19 @@
 # Changelog — TDT Online
 
+## 2026.09.30.0 — Pruebas automatizadas y dos fallos de lectura
+
+- **Pruebas:** nuevo proyecto `TdtOnline.Tests` (xUnit) con la lógica de la app: los tres formatos de
+  lista, la unión de listas, la carga sin red desde la copia guardada, la guía, la búsqueda, los
+  favoritos, las listas de Ajustes, los textos es/en y la versión. La búsqueda, los favoritos y la
+  validación de listas pasan a `Services/ChannelLists.cs` (mismo comportamiento) para poder probarlas.
+- **M3U:** un canal con coma en el nombre («Canal 4, Madrid») salía como «Madrid»: el nombre se
+  cortaba por la última coma. Ahora va tras la primera coma que sigue a los atributos.
+- **Guía:** un solo programa con la hora mal escrita (en texto o con decimales) hacía perder la guía
+  de todos los canales. Ahora se salta ese programa y el resto se lee.
+
+*English:* new automated test project. M3U channel names containing a comma are no longer cut, and
+a single guide entry with a malformed time no longer wipes the whole programme guide.
+
 ## 2026.09.29.0 — Letra grande y cruceta en la tele
 
 - **Letra grande del sistema (145 %):** la cabecera ya no parte palabras («TDT Onli / ne», «Last

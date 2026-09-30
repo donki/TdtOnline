@@ -150,7 +150,7 @@ public sealed partial class ChannelCatalog
     // ---------------------------------------------------------------------
 
     /// <summary>Canal en construccion: se le pueden añadir direcciones de otra lista antes de cerrarlo.</summary>
-    private sealed class Draft
+    internal sealed class Draft
     {
         public string Name = string.Empty;
         public string? LogoUrl;
@@ -162,7 +162,7 @@ public sealed partial class ChannelCatalog
         public string? Resolver;
     }
 
-    private static List<(string Name, List<Draft> Channels)> Parse(string text)
+    internal static List<(string Name, List<Draft> Channels)> Parse(string text)
     {
         var head = text.TrimStart();
         if (head.StartsWith("#EXTM3U", StringComparison.OrdinalIgnoreCase) || head.StartsWith("#EXTINF", StringComparison.OrdinalIgnoreCase))
@@ -296,7 +296,8 @@ public sealed partial class ChannelCatalog
             {
                 pending = null;
                 string? group = null, logo = null, epgId = null, tvgName = null;
-                foreach (Match m in ExtInfAttribute().Matches(line))
+                var attributes = ExtInfAttribute().Matches(line);
+                foreach (Match m in attributes)
                 {
                     switch (m.Groups[1].Value)
                     {
@@ -307,7 +308,10 @@ public sealed partial class ChannelCatalog
                     }
                 }
 
-                var comma = line.LastIndexOf(',');
+                // El nombre va tras la primera coma que sigue a los atributos: los atributos pueden
+                // llevar comas (group-title="Cine,Series") y el nombre tambien («Canal 4, Madrid»).
+                var afterAttributes = attributes.Count > 0 ? attributes[^1].Index + attributes[^1].Length : 0;
+                var comma = line.IndexOf(',', afterAttributes);
                 var name = comma >= 0 ? line[(comma + 1)..].Trim() : tvgName ?? string.Empty;
                 name = name.Replace("Ⓢ", "").Replace("Ⓖ", "").Replace("Ⓨ", "").Trim();
                 if (name.Length == 0)
@@ -355,7 +359,7 @@ public sealed partial class ChannelCatalog
     // ---------------------------------------------------------------------
 
     /// <summary>Clave de comparacion: minusculas, sin acentos, sin espacios ni signos.</summary>
-    private static string Key(string name)
+    internal static string Key(string name)
     {
         var sb = new StringBuilder(name.Length);
         foreach (var ch in name.Normalize(NormalizationForm.FormD))
@@ -367,7 +371,7 @@ public sealed partial class ChannelCatalog
         return sb.ToString();
     }
 
-    private static void Merge(List<(string Name, List<Draft> Channels)> categories, List<(string Name, List<Draft> Channels)> extra)
+    internal static void Merge(List<(string Name, List<Draft> Channels)> categories, List<(string Name, List<Draft> Channels)> extra)
     {
         if (categories.Count == 0)
         {
@@ -414,7 +418,7 @@ public sealed partial class ChannelCatalog
         }
     }
 
-    private static IReadOnlyList<Category> Finish(List<(string Name, List<Draft> Channels)> categories, HashSet<string>? verified)
+    internal static IReadOnlyList<Category> Finish(List<(string Name, List<Draft> Channels)> categories, HashSet<string>? verified)
     {
         var result = new List<Category>();
         foreach (var (name, drafts) in categories)

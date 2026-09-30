@@ -17,8 +17,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>TdtOnline</RootNamespace>
     <ApplicationId>com.socratic.tdtonline</ApplicationId>
-    <ApplicationDisplayVersion>2026.09.29.0</ApplicationDisplayVersion>
-    <ApplicationVersion>2026092900</ApplicationVersion>
+    <ApplicationDisplayVersion>2026.09.30.0</ApplicationDisplayVersion>
+    <ApplicationVersion>2026093000</ApplicationVersion>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
   </PropertyGroup>
@@ -31,6 +31,14 @@
     <AndroidLinkMode>SdkOnly</AndroidLinkMode>
     <RunAOTCompilation>false</RunAOTCompilation>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Las pruebas (TdtOnline.Tests, net10.0) viven dentro de esta carpeta: fuera de la app. -->
+    <Compile Remove="TdtOnline.Tests\**" />
+    <None Remove="TdtOnline.Tests\**" />
+    <Content Remove="TdtOnline.Tests\**" />
+    <EmbeddedResource Remove="TdtOnline.Tests\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Media3 (ExoPlayer) reproduce los HLS de las cadenas; UI trae el PlayerView con los

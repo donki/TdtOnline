@@ -51,11 +51,10 @@ public static class SonicLive
                 return false;
 
             var text = await Http.GetStringAsync(master, cancellationToken).ConfigureAwait(false);
-            var variant = text.Split('\n').Select(l => l.Trim()).FirstOrDefault(l => l.Length > 0 && !l.StartsWith('#'));
-            if (variant is null)
+            var variantUrl = FirstVariant(master, text);
+            if (variantUrl is null)
                 return false;
 
-            var variantUrl = new Uri(new Uri(master), variant);
             using var response = await Http.GetAsync(variantUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
@@ -95,6 +94,13 @@ public static class SonicLive
         }
     }
 
+    /// <summary>La primera variante de una lista maestra HLS (la primera linea que no es comentario), absoluta.</summary>
+    internal static Uri? FirstVariant(string master, string text)
+    {
+        var variant = text.Split('\n').Select(l => l.Trim()).FirstOrDefault(l => l.Length > 0 && !l.StartsWith('#'));
+        return variant is null ? null : new Uri(new Uri(master), variant);
+    }
+
     private static async Task<string> TokenAsync(string realm, CancellationToken cancellationToken)
     {
         lock (Tokens)
@@ -106,8 +112,7 @@ public static class SonicLive
         var url = $"https://public.aurora.enhanced.live/token?realm={Uri.EscapeDataString(realm)}&deviceId={Guid.NewGuid():N}&shortlived=true";
         using var stream = await Http.GetStreamAsync(url, cancellationToken).ConfigureAwait(false);
         using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
-        var token = document.RootElement.GetProperty("data").GetProperty("attributes").GetProperty("token").GetString()
-                    ?? throw new InvalidOperationException("Sin token");
+        var token = TokenFrom(document.RootElement);
 
         lock (Tokens)
             Tokens[realm] = token;
@@ -127,10 +132,20 @@ public static class SonicLive
 
         using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
         using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+        return StreamUrls(document.RootElement);
+    }
 
+    /// <summary>El token anonimo de la respuesta de <c>/token</c>.</summary>
+    internal static string TokenFrom(JsonElement root) =>
+        root.GetProperty("data").GetProperty("attributes").GetProperty("token").GetString()
+        ?? throw new InvalidOperationException("Sin token");
+
+    /// <summary>Las direcciones de <c>channelPlaybackInfo</c>: HLS primero, luego DASH; las que llevan DRM, fuera.</summary>
+    internal static string[] StreamUrls(JsonElement root)
+    {
         var hls = new List<string>();
         var dash = new List<string>();
-        foreach (var item in document.RootElement.GetProperty("data").GetProperty("attributes").GetProperty("streaming").EnumerateArray())
+        foreach (var item in root.GetProperty("data").GetProperty("attributes").GetProperty("streaming").EnumerateArray())
         {
             var url = item.TryGetProperty("url", out var u) ? u.GetString() : null;
             if (string.IsNullOrWhiteSpace(url))

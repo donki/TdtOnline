@@ -25,7 +25,7 @@ public sealed class EpgService
     /// <summary>Cuando se cargo la guia que hay en memoria; MinValue si no hay ninguna.</summary>
     private DateTime _loadedAtUtc = DateTime.MinValue;
 
-    private EpgService(string cacheDirectory)
+    internal EpgService(string cacheDirectory)
     {
         _cachePath = Path.Combine(cacheDirectory, "epg.json");
     }
@@ -96,7 +96,7 @@ public sealed class EpgService
         }
     }
 
-    private void ParseEpg(string json)
+    internal void ParseEpg(string json)
     {
         try
         {
@@ -120,8 +120,10 @@ public sealed class EpgService
                 var list = new List<EpgProgram>();
                 foreach (var ev in eventsProp.EnumerateArray())
                 {
-                    var hi = ev.TryGetProperty("hi", out var hiProp) ? hiProp.GetInt64() : 0;
-                    var hf = ev.TryGetProperty("hf", out var hfProp) ? hfProp.GetInt64() : 0;
+                    // Un evento con la hora mal escrita se salta; antes GetInt64 lanzaba y se
+                    // perdia la guia entera de todos los canales.
+                    var hi = EpochOf(ev, "hi");
+                    var hf = EpochOf(ev, "hf");
                     var title = ev.TryGetProperty("t", out var tProp) ? tProp.GetString() ?? string.Empty : string.Empty;
                     var desc = ev.TryGetProperty("d", out var dProp) ? dProp.GetString() ?? string.Empty : string.Empty;
 
@@ -150,6 +152,11 @@ public sealed class EpgService
             // Ignorar errores de parseo puntual en formato corrupto
         }
     }
+
+    private static long EpochOf(JsonElement ev, string property) =>
+        ev.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out var seconds)
+            ? seconds
+            : 0;
 
     /// <summary>¿Hay guia para este canal?</summary>
     public bool Has(string? epgId)

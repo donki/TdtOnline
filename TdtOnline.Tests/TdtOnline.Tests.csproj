@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Pruebas de la logica de TDT Online. La app es .NET para Android (net10.0-android36.0) y no se
+    puede referenciar desde net10.0: se enlazan los ficheros puros (sin Android.*). La interfaz
+    (actividades), las preferencias de Android (SharedPreferences) y los logotipos (Bitmap) quedan
+    fuera; UserPreferences se sustituye por un doble de prueba en Fakes/.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>TdtOnline.Tests</RootNamespace>
+    <RunSettingsFilePath>$(MSBuildThisFileDirectory)coverage.runsettings</RunSettingsFilePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- xunit (Apache-2.0), su runner (Apache-2.0), Microsoft.NET.Test.Sdk (MIT) y coverlet (MIT): solo para probar, no se distribuyen. -->
+    <PackageReference Include="coverlet.collector" Version="10.1.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Models\Channel.cs" Link="App\Models\Channel.cs" />
+    <Compile Include="..\Services\ChannelCatalog.cs" Link="App\Services\ChannelCatalog.cs" />
+    <Compile Include="..\Services\ChannelLists.cs" Link="App\Services\ChannelLists.cs" />
+    <Compile Include="..\Services\EpgService.cs" Link="App\Services\EpgService.cs" />
+    <Compile Include="..\Services\SonicLive.cs" Link="App\Services\SonicLive.cs" />
+    <Compile Include="..\Localization\Loc.cs" Link="App\Localization\Loc.cs" />
+  </ItemGroup>
+
+</Project>

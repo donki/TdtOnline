@@ -37,14 +37,7 @@ public sealed class UserPreferences
     /// </summary>
     public IReadOnlyList<string> ListUrls
     {
-        get
-        {
-            var raw = _prefs.GetString(KeyLists, null);
-            var urls = string.IsNullOrWhiteSpace(raw)
-                ? []
-                : raw.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-            return urls.Count > 0 ? urls : [ChannelCatalog.DefaultListUrl];
-        }
+        get => ChannelLists.ParseListUrls(_prefs.GetString(KeyLists, null));
         set
         {
             _prefs.Edit()!.PutString(KeyLists, string.Join('\n', value))!.Apply();
@@ -77,18 +70,7 @@ public sealed class UserPreferences
             return false;
 
         var set = GetFavorites();
-        bool isNowFavorite;
-
-        if (set.Contains(channelName))
-        {
-            set.Remove(channelName);
-            isNowFavorite = false;
-        }
-        else
-        {
-            set.Add(channelName);
-            isNowFavorite = true;
-        }
+        var isNowFavorite = ChannelLists.ToggleFavorite(set, channelName);
 
         _prefs.Edit()!.PutStringSet(KeyFavorites, set)!.Apply();
         FavoriteChanged?.Invoke(channelName, isNowFavorite);
