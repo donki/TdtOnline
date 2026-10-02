@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using TdtOnline.Models;
 using TdtOnline.Services;
+using TdtOnline.Tests.Fakes;
 
 namespace TdtOnline.Tests;
 
@@ -32,7 +33,7 @@ public class ChannelCatalogLoadTests
         Path.Combine(dir, $"lista-{Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(url)))[..16].ToLowerInvariant()}.txt");
 
     private static ChannelCatalog Catalog(TempDir dir, params string[] lists) =>
-        new(dir.Path, new UserPreferences { ListUrls = lists });
+        new(dir.Path, new UserPreferences(new MemoryPreferenceStore()) { ListUrls = lists });
 
     private static void WriteVerified(TempDir dir, params string[] resolvers) =>
         File.WriteAllText(dir.File("resolvers-ok.json"), JsonSerializer.Serialize(resolvers));
@@ -203,7 +204,7 @@ public class ChannelCatalogLoadTests
         using var dir = new TempDir();
         using var server = new LoopbackServer(M3u);
         var cacheDir = Path.Combine(dir.Path, "cache", "listas");
-        var catalog = new ChannelCatalog(cacheDir, new UserPreferences { ListUrls = [server.Url] });
+        var catalog = new ChannelCatalog(cacheDir, new UserPreferences(new MemoryPreferenceStore()) { ListUrls = [server.Url] });
 
         var result = await catalog.LoadAsync();
 
@@ -251,7 +252,7 @@ public class ChannelCatalogLoadTests
     [Fact]
     public void ClearCache_OnMissingFolderDoesNotThrow()
     {
-        var catalog = new ChannelCatalog(Path.Combine(Path.GetTempPath(), "tdtonline-tests", "no-existe-" + Guid.NewGuid()), new UserPreferences());
+        var catalog = new ChannelCatalog(Path.Combine(Path.GetTempPath(), "tdtonline-tests", "no-existe-" + Guid.NewGuid()), new UserPreferences(new MemoryPreferenceStore()));
 
         catalog.ClearCache();
     }

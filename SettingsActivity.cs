@@ -1,4 +1,4 @@
-using Android.Content.PM;
+﻿using Android.Content.PM;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
@@ -82,15 +82,15 @@ public sealed class SettingsActivity : AppCompatActivity
             row.FindViewById<TextView>(Resource.Id.url)!.Text = url;
 
             var label = row.FindViewById<TextView>(Resource.Id.label)!;
-            if (url == ChannelCatalog.DefaultListUrl)
+            if (SettingsLogic.Label(url) is { } text)
             {
-                label.Text = Loc.Get("DefaultListLabel");
+                label.Text = text;
                 label.Visibility = ViewStates.Visible;
             }
 
             row.FindViewById<ImageButton>(Resource.Id.btn_remove)!.Click += (_, _) =>
             {
-                _prefs.ListUrls = urls.Where(u => u != url).ToList();
+                _prefs.ListUrls = SettingsLogic.Remove(urls, url);
                 Toast.MakeText(this, Loc.Get("ListRemoved"), ToastLength.Short)?.Show();
                 RenderLists();
             };
@@ -101,25 +101,13 @@ public sealed class SettingsActivity : AppCompatActivity
 
     private void AddList()
     {
-        var text = (_newUrl.Text ?? string.Empty).Trim();
-        var urls = _prefs.ListUrls.ToList();
-        var check = ChannelLists.CheckNewList(text, urls);
-        if (check == ChannelLists.NewListCheck.Invalid)
-        {
-            Toast.MakeText(this, Loc.Get("ListInvalid"), ToastLength.Short)?.Show();
+        var (message, urls) = SettingsLogic.Add(_newUrl.Text, _prefs.ListUrls);
+        Toast.MakeText(this, Loc.Get(message), ToastLength.Short)?.Show();
+        if (urls is null)
             return;
-        }
 
-        if (check == ChannelLists.NewListCheck.Exists)
-        {
-            Toast.MakeText(this, Loc.Get("ListExists"), ToastLength.Short)?.Show();
-            return;
-        }
-
-        urls.Add(text);
         _prefs.ListUrls = urls;
         _newUrl.Text = string.Empty;
-        Toast.MakeText(this, Loc.Get("ListAdded"), ToastLength.Short)?.Show();
         RenderLists();
     }
 }

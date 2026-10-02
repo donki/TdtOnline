@@ -42,6 +42,11 @@
     <Compile Include="..\Services\EpgService.cs" Link="App\Services\EpgService.cs" />
     <Compile Include="..\Services\SonicLive.cs" Link="App\Services\SonicLive.cs" />
     <Compile Include="..\Localization\Loc.cs" Link="App\Localization\Loc.cs" />
+    <Compile Include="..\Services\IPreferenceStore.cs" Link="App\Services\IPreferenceStore.cs" />
+    <Compile Include="..\Services\UserPreferences.cs" Link="App\Services\UserPreferences.cs" />
+    <Compile Include="..\Services\ErrorLog.cs" Link="App\Services\ErrorLog.cs" />
+    <Compile Include="..\Services\ScreenLogic.cs" Link="App\Services\ScreenLogic.cs" />
+    <Compile Include="..\Services\StreamFailover.cs" Link="App\Services\StreamFailover.cs" />
   </ItemGroup>
 
 </Project>

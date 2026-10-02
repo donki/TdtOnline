@@ -48,12 +48,9 @@ public sealed class PlayerActivity : AppCompatActivity
 
     private string _channelName = string.Empty;
     private string? _epgId;
-    private string[] _urls = [];
-    private int _current;
-
-    // Cadenas que dan la direccion al ir a verlas (DMAX): cuando se pidio, para no pedirla en bucle.
+    // Que direccion probar y que hacer al fallar (incluidas las cadenas que la dan al ir a verlas, DMAX).
+    private StreamFailover _streams = new([], null);
     private string? _resolver;
-    private DateTime _resolvedAt = DateTime.MinValue;
     private CancellationTokenSource? _resolving;
 
     /// <summary>El intent que abre este reproductor con un canal: lo usan la lista y la parrilla.</summary>
@@ -87,8 +84,8 @@ public sealed class PlayerActivity : AppCompatActivity
 
         _channelName = Intent?.GetStringExtra(ExtraName) ?? string.Empty;
         _epgId = Intent?.GetStringExtra(ExtraEpgId);
-        _urls = Intent?.GetStringArrayExtra(ExtraUrls) ?? [];
         _resolver = Intent?.GetStringExtra(ExtraResolver);
+        _streams = new StreamFailover(Intent?.GetStringArrayExtra(ExtraUrls) ?? [], _resolver);
 
         _channelTitle.Text = _channelName;
         UpdateFavoriteButton();
@@ -118,7 +115,7 @@ public sealed class PlayerActivity : AppCompatActivity
     {
         var added = _prefs.ToggleFavorite(_channelName);
         UpdateFavoriteButton();
-        var msg = added ? Loc.Format("FavoriteAdded", _channelName) : Loc.Format("FavoriteRemoved", _channelName);
+        var msg = HomeLogic.FavoriteToggledText(_channelName, added);
         Toast.MakeText(this, msg, ToastLength.Short)?.Show();
     }
 
@@ -165,10 +162,7 @@ public sealed class PlayerActivity : AppCompatActivity
         _player.AddListener(new Listener(this));
         _view.Player = _player;
 
-        if (SonicLive.Handles(_resolver))
-            ResolveAndPlay();
-        else
-            PlayCurrent();
+        Do(_streams.Start());
     }
 
     protected override void OnStop()
@@ -194,15 +188,20 @@ public sealed class PlayerActivity : AppCompatActivity
         if (cts.IsCancellationRequested || _player is null)
             return;
 
-        _urls = urls;
-        _current = 0;
-        _resolvedAt = DateTime.UtcNow;
-        PlayCurrent();
+        Do(_streams.Resolved(urls, DateTime.UtcNow));
+    }
+
+    private void Do(StreamStep step)
+    {
+        if (step == StreamStep.Resolve)
+            ResolveAndPlay();
+        else
+            PlayCurrent();
     }
 
     private void PlayCurrent()
     {
-        if (_player is null || _current >= _urls.Length)
+        if (_player is null || _streams.CurrentUrl is not { } url)
         {
             _error.Text = Loc.Get("PlayFailed");
             _error.Visibility = ViewStates.Visible;
@@ -210,7 +209,7 @@ public sealed class PlayerActivity : AppCompatActivity
         }
 
         _error.Visibility = ViewStates.Gone;
-        _player.SetMediaItem(MediaItem.FromUri(_urls[_current]));
+        _player.SetMediaItem(MediaItem.FromUri(url));
         _player.PlayWhenReady = true;
         _player.Prepare();
     }
@@ -218,21 +217,14 @@ public sealed class PlayerActivity : AppCompatActivity
     /// <summary>Falla la emision: a la siguiente direccion, si queda alguna.</summary>
     private void OnPlaybackError()
     {
-        // La direccion pedida al servicio caduca a los minutos: se pide otra una vez, no en bucle.
-        if (SonicLive.Handles(_resolver) && DateTime.UtcNow - _resolvedAt > TimeSpan.FromSeconds(30))
-        {
-            ResolveAndPlay();
-            return;
-        }
-
-        _current++;
-        if (_current < _urls.Length)
+        var (step, trying) = _streams.Failed(DateTime.UtcNow);
+        if (trying && step != StreamStep.Resolve)
         {
             _error.Text = Loc.Get("Trying");
             _error.Visibility = ViewStates.Visible;
         }
 
-        PlayCurrent();
+        Do(step);
     }
 
     private sealed class Listener(PlayerActivity owner) : Java.Lang.Object, IPlayerListener

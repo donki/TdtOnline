@@ -1,6 +1,4 @@
-using Android.Content;
-
-namespace TdtOnline.Services;
+﻿namespace TdtOnline.Services;
 
 /// <summary>
 /// Guarda las preferencias locales del usuario: canales favoritos y ultimo canal visto.
@@ -15,20 +13,26 @@ public sealed class UserPreferences
     private const string KeyLists = "list_urls";
     private const string KeyListsVersion = "list_urls_version";
 
-    private readonly ISharedPreferences _prefs;
+    private readonly IPreferenceStore _prefs;
 
     public event Action<string, bool>? FavoriteChanged;
 
-    public UserPreferences(Context context)
+#if ANDROID
+    public UserPreferences(Android.Content.Context context) : this(new SharedPreferencesStore(context, PrefsName))
     {
-        _prefs = context.GetSharedPreferences(PrefsName, FileCreationMode.Private)!;
+    }
+#endif
+
+    public UserPreferences(IPreferenceStore store)
+    {
+        _prefs = store;
     }
 
     /// <summary>Idioma elegido en «Acerca de»; vacio = el del sistema.</summary>
     public string Language
     {
         get => _prefs.GetString(KeyLanguage, string.Empty) ?? string.Empty;
-        set => _prefs.Edit()!.PutString(KeyLanguage, value)!.Apply();
+        set => _prefs.PutString(KeyLanguage, value);
     }
 
     /// <summary>
@@ -40,7 +44,7 @@ public sealed class UserPreferences
         get => ChannelLists.ParseListUrls(_prefs.GetString(KeyLists, null));
         set
         {
-            _prefs.Edit()!.PutString(KeyLists, string.Join('\n', value))!.Apply();
+            _prefs.PutString(KeyLists, string.Join('\n', value));
             BumpListsVersion();
         }
     }
@@ -48,11 +52,11 @@ public sealed class UserPreferences
     /// <summary>Sube cada vez que cambian las listas o se pide un refresco: la pantalla principal recarga si lo ve distinto.</summary>
     public int ListsVersion => _prefs.GetInt(KeyListsVersion, 0);
 
-    public void BumpListsVersion() => _prefs.Edit()!.PutInt(KeyListsVersion, ListsVersion + 1)!.Apply();
+    public void BumpListsVersion() => _prefs.PutInt(KeyListsVersion, ListsVersion + 1);
 
     public HashSet<string> GetFavorites()
     {
-        var set = _prefs.GetStringSet(KeyFavorites, null);
+        var set = _prefs.GetStringSet(KeyFavorites);
         return set is not null ? new HashSet<string>(set, StringComparer.OrdinalIgnoreCase) : [];
     }
 
@@ -72,7 +76,7 @@ public sealed class UserPreferences
         var set = GetFavorites();
         var isNowFavorite = ChannelLists.ToggleFavorite(set, channelName);
 
-        _prefs.Edit()!.PutStringSet(KeyFavorites, set)!.Apply();
+        _prefs.PutStringSet(KeyFavorites, set);
         FavoriteChanged?.Invoke(channelName, isNowFavorite);
         return isNowFavorite;
     }
@@ -83,9 +87,9 @@ public sealed class UserPreferences
         set
         {
             if (string.IsNullOrWhiteSpace(value))
-                _prefs.Edit()!.Remove(KeyLastChannel)!.Apply();
+                _prefs.Remove(KeyLastChannel);
             else
-                _prefs.Edit()!.PutString(KeyLastChannel, value)!.Apply();
+                _prefs.PutString(KeyLastChannel, value);
         }
     }
 }

@@ -82,11 +82,14 @@ emulator -avd tv
 ## Pruebas
 
 `TdtOnline.Tests` (xUnit, net10.0) enlaza los ficheros puros de la app (listas, guía, búsqueda,
-favoritos, textos, DMAX) y los prueba sin red externa. Estado a 2026-09-29: **108 pruebas** (todas
-pasan), **90,9 %** de cobertura de líneas del código instrumentado (677 de 744) y **46,0 %** sobre
-toda la app (677 de 1473 líneas ejecutables; las actividades, las preferencias de Android y los
-logotipos no se prueban). El banco tarda **unos 3,3 s** (`dotnet test --no-build`, con cobertura;
-las pruebas en sí, 0,4 s).
+favoritos, textos, DMAX, preferencias, la lógica de las pantallas en `ScreenLogic`, el cambio de
+dirección del reproductor en `StreamFailover` y el registro de errores) y los prueba sin red externa
+ni Android. Estado a 2026-10-02: **144 pruebas** (todas pasan), **92,4 %** de cobertura de líneas del
+código instrumentado (823 de 890) y **53,0 %** sobre toda la app (823 de 1552 líneas ejecutables; antes
+46,0 %). Lo que queda sin probar son las actividades (el enlace con las vistas de Android:
+adaptadores de RecyclerView, ExoPlayer, foco de la cruceta), `TdtApplication`, `LogoLoader` y las
+SharedPreferences; el plan para llegar al 90 % está en el fichero de tareas. El banco tarda **unos
+0,5 s** (≈ 3 s con el arranque de `dotnet test` y la cobertura).
 
 ```
 dotnet test TdtOnline.Tests --collect:"XPlat Code Coverage"

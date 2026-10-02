@@ -1,5 +1,20 @@
 # Changelog — TDT Online
 
+## 2026.10.02.0 — La lógica de las pantallas, fuera de las actividades
+
+- **Cobertura de toda la app: del 46,0 al 53,0 %** (General §8.6; 144 pruebas, antes 108). Lo que
+  hacían las actividades sin tocar vistas sale a clases que se prueban sin Android:
+  `Services/ScreenLogic.cs` (pastillas de categoría, categoría a mantener, cruceta en la rejilla,
+  atrás con el buscador, columnas, avisos, parrilla con favoritos delante y la barra de «Ahora»,
+  añadir y quitar listas), `Services/StreamFailover.cs` (qué dirección probar y cuándo volver a pedir
+  la de DMAX) y `Services/ErrorLog.cs` (registro de errores y límite de avisos). Las preferencias
+  van sobre `IPreferenceStore` (en Android, las SharedPreferences) y se prueban con un doble en
+  memoria. El usuario no ve ningún cambio.
+
+### English
+- Screen logic moved out of the activities into testable classes; preferences behind an interface.
+  No visible change. 144 tests; whole-app coverage 53.0 % (was 46.0 %).
+
 ## 2026.09.30.0 — Pruebas automatizadas y dos fallos de lectura
 
 - **Pruebas:** nuevo proyecto `TdtOnline.Tests` (xUnit) con la lógica de la app: los tres formatos de

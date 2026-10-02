@@ -124,7 +124,7 @@ public sealed class MainActivity : AppCompatActivity
             // Ha terminado la comprobacion de Free-TV: entran los canales que faltaban.
             _rawCategories = categories;
             RebuildDisplayCategories(maintainCategory: true);
-            _status.Text = Loc.Format("ChannelsCount", _rawCategories.Sum(c => c.Channels.Count));
+            _status.Text = HomeLogic.ChannelsCountText(_rawCategories);
         });
 
         OnBackPressedDispatcher.AddCallback(this, new BackCallback(this));
@@ -140,24 +140,18 @@ public sealed class MainActivity : AppCompatActivity
     /// </summary>
     private void OnBack()
     {
-        if (SearchText.Length > 0)
+        var back = HomeLogic.Back(SearchText, _search.HasFocus);
+        if (back == HomeBack.HideApp)
         {
+            MoveTaskToBack(true);
+            return;
+        }
+
+        if (back == HomeBack.ClearSearch)
             _search.Text = string.Empty;
-            HideKeyboard();
-            _search.ClearFocus();
-            _channelsView.RequestFocus();
-            return;
-        }
-
-        if (_search.HasFocus)
-        {
-            HideKeyboard();
-            _search.ClearFocus();
-            _channelsView.RequestFocus();
-            return;
-        }
-
-        MoveTaskToBack(true);
+        HideKeyboard();
+        _search.ClearFocus();
+        _channelsView.RequestFocus();
     }
 
     private sealed class BackCallback(MainActivity owner) : AndroidX.Activity.OnBackPressedCallback(true)
@@ -244,14 +238,19 @@ public sealed class MainActivity : AppCompatActivity
     private bool CardKey(int position, Keycode key)
     {
         var span = ((GridLayoutManager)_channelsView.GetLayoutManager()!).SpanCount;
-        var column = position % span;
-        switch (key)
+        var dpad = key switch
         {
-            case Keycode.DpadRight:
-                return column == span - 1 || position == _channels.ItemCount - 1;
-            case Keycode.DpadLeft:
-                return column == 0;
-            case Keycode.DpadUp when position < span:
+            Keycode.DpadLeft => DpadKey.Left,
+            Keycode.DpadRight => DpadKey.Right,
+            Keycode.DpadUp => DpadKey.Up,
+            Keycode.DpadDown => DpadKey.Down,
+            _ => DpadKey.Other,
+        };
+        switch (HomeLogic.CardKey(position, span, _channels.ItemCount, dpad))
+        {
+            case CardKeyAction.Stay:
+                return true;
+            case CardKeyAction.FocusCategory:
                 var chip = _categoriesView.GetLayoutManager()?.FindViewByPosition(_selectedCategoryIndex);
                 if (chip is not null)
                     return chip.RequestFocus();
@@ -279,15 +278,14 @@ public sealed class MainActivity : AppCompatActivity
         FindViewById<TextView>(Resource.Id.title)!.Text = Loc.Get("AppTitle");
         _search.Hint = Loc.Get("SearchHint");
         if (_rawCategories.Count > 0)
-            _status.Text = Loc.Format("ChannelsCount", _rawCategories.Sum(c => c.Channels.Count));
+            _status.Text = HomeLogic.ChannelsCountText(_rawCategories);
     }
 
     private void UpdateLastChannelUi()
     {
-        var last = _prefs.LastChannel;
-        if (!string.IsNullOrWhiteSpace(last))
+        if (HomeLogic.LastChannelText(_prefs.LastChannel) is { } text)
         {
-            _lastChannelView.Text = Loc.Format("LastChannel", last);
+            _lastChannelView.Text = text;
             _lastChannelView.Visibility = ViewStates.Visible;
         }
         else
@@ -297,26 +295,13 @@ public sealed class MainActivity : AppCompatActivity
         }
     }
 
-    private Channel? FindChannelByName(string name)
-    {
-        foreach (var cat in _rawCategories)
-        {
-            foreach (var ch in cat.Channels)
-            {
-                if (string.Equals(ch.Name, name, StringComparison.OrdinalIgnoreCase))
-                    return ch;
-            }
-        }
-
-        return null;
-    }
+    private Channel? FindChannelByName(string name) => HomeLogic.FindChannel(_rawCategories, name);
 
     /// <summary>Tantas columnas como quepan a ~160 dp: cuatro en un movil, siete u ocho en una tele.</summary>
     private int ColumnsForWidth()
     {
         var metrics = Resources!.DisplayMetrics!;
-        var widthDp = metrics.WidthPixels / metrics.Density;
-        return Math.Max(2, (int)(widthDp / 160));
+        return HomeLogic.Columns(metrics.WidthPixels, metrics.Density);
     }
 
     private async Task LoadAsync(bool forceRefresh)
@@ -326,10 +311,10 @@ public sealed class MainActivity : AppCompatActivity
         {
             _rawCategories = await _catalog.LoadAsync(forceRefresh);
             RebuildDisplayCategories(maintainCategory: false);
-            _status.Text = Loc.Format("ChannelsCount", _rawCategories.Sum(c => c.Channels.Count));
+            _status.Text = HomeLogic.ChannelsCountText(_rawCategories);
 
-            if (_catalog.FailedLists.Count > 0)
-                Toast.MakeText(this, Loc.Format("ListsFailed", string.Join(", ", _catalog.FailedLists.Select(ShortUrl))), ToastLength.Long)?.Show();
+            if (HomeLogic.FailedListsText(_catalog.FailedLists) is { } failed)
+                Toast.MakeText(this, failed, ToastLength.Long)?.Show();
             if (_rawCategories.Count == 0)
                 _status.Text = Loc.Get("LoadFailed");
         }
@@ -339,51 +324,18 @@ public sealed class MainActivity : AppCompatActivity
         }
     }
 
-    private static string ShortUrl(string url) => ChannelLists.ShortUrl(url);
-
     private void RebuildDisplayCategories(bool maintainCategory)
     {
         var currentSelectedName = _selectedCategoryIndex >= 0 && _selectedCategoryIndex < _displayCategories.Count
             ? _displayCategories[_selectedCategoryIndex].Name
             : null;
 
-        var list = new List<Category>();
-        // 1. Favoritos, siempre el primero aunque este vacio: es el grupo del usuario, y si no se
-        //    ve no hay forma de saber que existe ni de meter nada en el.
-        var favChannels = ChannelLists.Favorites(_rawCategories, _prefs.GetFavorites());
-
-        list.Add(new Category(Loc.Get("Favorites"), favChannels));
-
-        // 2. Todos: cada canal una vez, en el orden de la lista, para verlos sin saber la categoria.
-        list.Add(new Category(Loc.Get("AllChannels"), AllChannels()));
-
-        // 3. Resto de categorias
-        list.AddRange(_rawCategories);
-
-        _displayCategories = list;
+        // Favoritos (siempre el primero, aunque este vacio), Todos y las categorias de las listas.
+        _displayCategories = HomeLogic.DisplayCategories(_rawCategories, _prefs.GetFavorites());
         _categories.Submit(_displayCategories);
-
-        if (_displayCategories.Count == 0)
-            return;
-
-        int targetIndex = 0;
-        if (maintainCategory && currentSelectedName is not null)
-        {
-            for (int i = 0; i < _displayCategories.Count; i++)
-            {
-                if (_displayCategories[i].Name == currentSelectedName)
-                {
-                    targetIndex = i;
-                    break;
-                }
-            }
-        }
-
+        var targetIndex = HomeLogic.TargetIndex(_displayCategories, maintainCategory, currentSelectedName);
         ShowCategory(targetIndex);
     }
-
-    /// <summary>Todos los canales sin repetir (un canal puede estar en varias categorias).</summary>
-    private List<Channel> AllChannels() => ChannelLists.AllChannels(_rawCategories);
 
     private void ShowCategory(int index)
     {
@@ -408,14 +360,11 @@ public sealed class MainActivity : AppCompatActivity
             return;
         }
 
-        _channels.Submit(_displayCategories[index].Channels);
-        _channelsView.ScrollToPosition(0);
-
         // Favoritos vacio: se explica como se llena, en vez de dejar la rejilla en blanco.
-        var emptyFavorites = index == 0 && _displayCategories[index].Channels.Count == 0;
-        _emptyHint.Visibility = emptyFavorites ? ViewStates.Visible : ViewStates.Gone;
-        if (emptyFavorites)
-            _emptyHint.Text = Loc.Get("FavoriteTip");
+        var (channels, hint) = HomeLogic.ShowCategory(_displayCategories, index);
+        _channels.Submit(channels);
+        _channelsView.ScrollToPosition(0);
+        ShowHint(hint);
     }
 
     private string SearchText => (_search.Text ?? string.Empty).Trim();
@@ -430,13 +379,17 @@ public sealed class MainActivity : AppCompatActivity
             return;
         }
 
-        var matches = ChannelLists.Search(_rawCategories, text);
+        var (matches, hint) = HomeLogic.Search(_rawCategories, text);
         _channels.Submit(matches);
         _channelsView.ScrollToPosition(0);
+        ShowHint(hint);
+    }
 
-        _emptyHint.Visibility = matches.Count == 0 ? ViewStates.Visible : ViewStates.Gone;
-        if (matches.Count == 0)
-            _emptyHint.Text = Loc.Format("NoResults", text);
+    private void ShowHint(string? hint)
+    {
+        _emptyHint.Visibility = hint is null ? ViewStates.Gone : ViewStates.Visible;
+        if (hint is not null)
+            _emptyHint.Text = hint;
     }
 
     private void HideKeyboard()
@@ -448,7 +401,7 @@ public sealed class MainActivity : AppCompatActivity
     private void ToggleFavorite(Channel channel)
     {
         var isFav = _prefs.ToggleFavorite(channel.Name);
-        var msg = isFav ? Loc.Format("FavoriteAdded", channel.Name) : Loc.Format("FavoriteRemoved", channel.Name);
+        var msg = HomeLogic.FavoriteToggledText(channel.Name, isFav);
         Toast.MakeText(this, msg, ToastLength.Short)?.Show();
 
         RebuildDisplayCategories(maintainCategory: true);

@@ -1,4 +1,4 @@
-using Android.Runtime;
+﻿using Android.Runtime;
 using Android.Util;
 using Android.Widget;
 using TdtOnline.Localization;
@@ -23,11 +23,7 @@ namespace TdtOnline;
 public sealed class TdtApplication : Application
 {
     private const string Tag = "TdtOnline";
-    private const long MaxLogBytes = 256 * 1024;
-
-    private static readonly object LogLock = new();
-    private static string? _logPath;
-    private static DateTime _lastNotice = DateTime.MinValue;
+    private static ErrorLog? _log;
 
     public TdtApplication(IntPtr handle, JniHandleOwnership transfer) : base(handle, transfer)
     {
@@ -36,7 +32,7 @@ public sealed class TdtApplication : Application
     public override void OnCreate()
     {
         base.OnCreate();
-        _logPath = Path.Combine(FilesDir!.AbsolutePath, "errors.log");
+        _log = new ErrorLog(Path.Combine(FilesDir!.AbsolutePath, "errors.log"));
 
         // El idioma elegido en «Acerca de», para que el aviso salga en el del usuario desde el arranque.
         Loc.Override = new UserPreferences(this).Language;
@@ -64,7 +60,7 @@ public sealed class TdtApplication : Application
         try
         {
             Log.Error(Tag, $"Error no controlado ({source}): {ex}");
-            WriteLog(ex, source);
+            _log?.Write(ex, source, DateTime.Now);
         }
         catch
         {
@@ -74,10 +70,8 @@ public sealed class TdtApplication : Application
         try
         {
             // Un error en bucle no debe llenar la pantalla de avisos.
-            var now = DateTime.UtcNow;
-            if (now - _lastNotice < TimeSpan.FromSeconds(3))
+            if (_log is not null && !_log.ShouldNotify(DateTime.UtcNow))
                 return;
-            _lastNotice = now;
 
             var context = Android.App.Application.Context;
             new Android.OS.Handler(Android.OS.Looper.MainLooper!).Post(() =>
@@ -94,21 +88,6 @@ public sealed class TdtApplication : Application
         }
         catch
         {
-        }
-    }
-
-    private static void WriteLog(Exception ex, string source)
-    {
-        if (_logPath is null)
-            return;
-
-        lock (LogLock)
-        {
-            var info = new FileInfo(_logPath);
-            if (info.Exists && info.Length > MaxLogBytes)
-                File.Move(_logPath, _logPath + ".old", overwrite: true);
-
-            File.AppendAllText(_logPath, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] ({source}) {ex}{System.Environment.NewLine}{System.Environment.NewLine}");
         }
     }
 }

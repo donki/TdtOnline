@@ -23,7 +23,7 @@ namespace TdtOnline;
 [Activity(Label = "TDT Online", ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize)]
 public sealed class GuideActivity : AppCompatActivity
 {
-    private const int ProgramsPerChannel = 12;
+    private const int ProgramsPerChannel = GuideLogic.ProgramsPerChannel;
 
     private ChannelCatalog _catalog = null!;
     private LogoLoader _logos = null!;
@@ -89,24 +89,13 @@ public sealed class GuideActivity : AppCompatActivity
     /// <summary>Canales con guia, sin repetir, favoritos delante.</summary>
     private void Rebuild()
     {
-        var favorites = _prefs.GetFavorites();
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var all = new List<Channel>();
-        foreach (var cat in _categories)
-        {
-            foreach (var ch in cat.Channels)
-            {
-                if (_epg.Has(ch.EpgId) && seen.Add(ch.Name))
-                    all.Add(ch);
-            }
-        }
-
-        var ordered = all.Where(c => favorites.Contains(c.Name)).Concat(all.Where(c => !favorites.Contains(c.Name))).ToList();
+        // Los canales con guia, cada uno una vez, con los favoritos delante.
+        var ordered = GuideLogic.Rows(_categories, _prefs.GetFavorites(), _epg.Has);
         _adapter.Submit(ordered);
 
         _empty.Visibility = ordered.Count == 0 ? ViewStates.Visible : ViewStates.Gone;
         if (ordered.Count == 0)
-            _empty.Text = Loc.Get(_epg.IsLoaded ? "GuideEmpty" : "GuideLoading");
+            _empty.Text = GuideLogic.EmptyText(_epg.IsLoaded);
     }
 
     private void Play(Channel channel)
@@ -221,17 +210,12 @@ public sealed class GuideActivity : AppCompatActivity
         {
             var h = (Holder)holder;
             var p = _items[position];
-            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var current = p.StartEpochSeconds <= now && now < p.EndEpochSeconds;
-
-            h.Time.Text = current ? $"{Loc.Get("NowLabel")} · {p.TimeRange}" : p.TimeRange;
+            var (time, current, progress) = GuideLogic.ProgramCell(p, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+            h.Time.Text = time;
             h.Title.Text = p.Title;
             h.Progress.Visibility = current ? ViewStates.Visible : ViewStates.Gone;
             if (current)
-            {
-                var length = Math.Max(1, p.EndEpochSeconds - p.StartEpochSeconds);
-                h.Progress.Progress = (int)(1000 * (now - p.StartEpochSeconds) / length);
-            }
+                h.Progress.Progress = progress;
         }
 
         private sealed class Holder : RecyclerView.ViewHolder
