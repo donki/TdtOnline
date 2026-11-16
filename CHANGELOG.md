@@ -1,5 +1,26 @@
 # Changelog — TDT Online
 
+## 2026.11.16.0 — Fuera los emoji: iconos planos
+
+- **Sin emoji en la interfaz** (General §6.2): la pastilla «⭐ Favoritos» pasa a ser «Favoritos» con
+  una **estrella dibujada** de línea; los botones de idioma de «Acerca de» llevan la **bandera
+  dibujada** (España, EE. UU.) en vez del emoji de bandera; el aviso legal, un **triángulo de aviso**
+  blanco en vez de «⚠️», y la ayuda de Ajustes enseña los **mismos iconos** de los botones de
+  descargar y restaurar en vez de «↻» y «↶». Los dibujos son vectoriales (`ic_star`, `ic_flag_es`,
+  `ic_flag_us`, `ic_warning_w`), crecen con la letra del sistema y se ven igual en todos los
+  teléfonos y teles. La pastilla sigue siendo la misma vista enfocable: la cruceta del mando la
+  recorre igual que antes.
+- Los textos llevan la marca `{icon:nombre}` donde va un dibujo (`Services/InlineIcons.cs`, sin
+  Android) y la pantalla la cambia por el icono (`Services/IconText.cs`).
+- **Pruebas:** 170 (antes 144). Ningún texto en los dos idiomas, ningún diseño y ningún código de la
+  app lleva emoji; cada marca tiene su dibujo y es la misma en español e inglés; la pastilla de
+  Favoritos es la única marcada con la estrella.
+
+### English
+- No emoji left in the interface: the Favorites tab, the language buttons, the legal warning and
+  the Settings hint now use flat vector icons (star, flags, warning, refresh/restore) that scale with
+  the system font and look the same on every phone and TV. 170 tests (was 144).
+
 ## 2026.10.02.0 — La lógica de las pantallas, fuera de las actividades
 
 - **Cobertura de toda la app: del 46,0 al 53,0 %** (General §8.6; 144 pruebas, antes 108). Lo que

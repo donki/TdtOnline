@@ -3,6 +3,10 @@
 namespace TdtOnline.Localization;
 
 /// <summary>Textos en español e ingles (constitucion general seccion 1, constitucion mobile). Sigue al idioma del sistema.</summary>
+/// <remarks>
+/// Ningun texto lleva emoji (General 6.2): donde hace falta un dibujo va la marca
+/// <c>{icon:nombre}</c> y la pantalla la cambia por el icono plano (<see cref="Services.InlineIcons"/>).
+/// </remarks>
 public static class Loc
 {
     private static readonly Dictionary<string, string> English = new()
@@ -14,7 +18,7 @@ public static class Loc
         ["PlayFailed"] = "This channel cannot be played right now.",
         ["Trying"] = "Trying another stream…",
         ["Refresh"] = "Refresh",
-        ["Favorites"] = "⭐ Favorites",
+        ["Favorites"] = "Favorites",
         ["AllChannels"] = "All",
         ["SearchHint"] = "Search channel…",
         ["NoResults"] = "No channel matches «{0}».",
@@ -31,7 +35,7 @@ public static class Loc
         ["RefreshDone"] = "Lists will be downloaded again now.",
         ["DefaultListLabel"] = "default list",
         ["ListsFailed"] = "Could not download: {0}",
-        ["ActionsHint"] = "↻ downloads the lists again · ↶ goes back to the default list",
+        ["ActionsHint"] = "{icon:refresh} downloads the lists again · {icon:restore} goes back to the default list",
         ["GuideEmpty"] = "No programme guide available right now.",
         ["GuideLoading"] = "Loading the programme guide…",
         ["NowLabel"] = "Now",
@@ -47,8 +51,8 @@ public static class Loc
         ["ContactHint"] = "Questions, bugs and ideas are welcome.",
         ["SectionLanguage"] = "Language",
         ["LanguageHint"] = "The language applies right away.",
-        ["SpanishButton"] = "🇪🇸 Español",
-        ["EnglishButton"] = "🇺🇸 English",
+        ["SpanishButton"] = "{icon:flag_es} Español",
+        ["EnglishButton"] = "{icon:flag_us} English",
         ["PrivacyTitle"] = "Privacy",
         ["PrivacyText"] = "TDT Online downloads the channel list from {0} (github.com/donki/tdt-canales, built from TDTChannels and Free-TV, community lists with the streams each broadcaster publishes openly) plus any list you add in Settings, and just opens them: it hosts and relays nothing. For DMAX, which publishes no fixed address, it asks the broadcaster's own service for the live stream each time, exactly as its website does, with no account. Only open, unencrypted streams are listed. Favorites and the last channel stay on the device. There are no accounts, no ads and no analytics.",
         ["LicenseTitle"] = "License",
@@ -57,7 +61,7 @@ public static class Loc
         ["LegalTitle"] = "Legal notice",
         ["LegalText1"] = "This software is provided \"as is\", without warranty of any kind, express or implied.",
         ["LegalText2"] = "In no event shall the authors be liable for any claim, damages or other liability arising from the use of this software.",
-        ["WarningText"] = "⚠️ Use at your own risk",
+        ["WarningText"] = "{icon:warning} Use at your own risk",
         ["UnexpectedError"] = "Something went wrong. It has been logged.",
         ["Close"] = "Close",
         ["NowPlaying"] = "Now: {0}",
@@ -72,7 +76,7 @@ public static class Loc
         ["PlayFailed"] = "Este canal no se puede ver ahora mismo.",
         ["Trying"] = "Probando otra emisión…",
         ["Refresh"] = "Actualizar",
-        ["Favorites"] = "⭐ Favoritos",
+        ["Favorites"] = "Favoritos",
         ["AllChannels"] = "Todos",
         ["SearchHint"] = "Buscar canal…",
         ["NoResults"] = "Ningún canal coincide con «{0}».",
@@ -89,7 +93,7 @@ public static class Loc
         ["RefreshDone"] = "Las listas se descargan de nuevo ahora.",
         ["DefaultListLabel"] = "lista por defecto",
         ["ListsFailed"] = "No se ha podido descargar: {0}",
-        ["ActionsHint"] = "↻ vuelve a descargar las listas · ↶ vuelve a la lista por defecto",
+        ["ActionsHint"] = "{icon:refresh} vuelve a descargar las listas · {icon:restore} vuelve a la lista por defecto",
         ["GuideEmpty"] = "Ahora mismo no hay guía de programación.",
         ["GuideLoading"] = "Cargando la guía de programación…",
         ["NowLabel"] = "Ahora",
@@ -105,8 +109,8 @@ public static class Loc
         ["ContactHint"] = "Dudas, fallos e ideas son bienvenidos.",
         ["SectionLanguage"] = "Idioma",
         ["LanguageHint"] = "El idioma se aplica de inmediato.",
-        ["SpanishButton"] = "🇪🇸 Español",
-        ["EnglishButton"] = "🇺🇸 English",
+        ["SpanishButton"] = "{icon:flag_es} Español",
+        ["EnglishButton"] = "{icon:flag_us} English",
         ["PrivacyTitle"] = "Privacidad",
         ["PrivacyText"] = "TDT Online descarga la lista de canales de {0} (github.com/donki/tdt-canales, generada a partir de TDTChannels y Free-TV, listas de la comunidad con las emisiones que cada cadena publica en abierto) y las listas que añadas en Ajustes, y se limita a abrirlas: no aloja ni reemite nada. Para DMAX, que no publica dirección fija, pide la emisión al servicio de la propia cadena cada vez, igual que hace su web, sin cuenta alguna. Solo se listan emisiones abiertas y sin cifrar. Los favoritos y el último canal se quedan en el dispositivo. No hay cuentas, ni anuncios, ni analítica.",
         ["LicenseTitle"] = "Licencia",
@@ -115,7 +119,7 @@ public static class Loc
         ["LegalTitle"] = "Aviso legal",
         ["LegalText1"] = "Este software se entrega «tal cual», sin garantías de ningún tipo, expresas o implícitas.",
         ["LegalText2"] = "En ningún caso los autores serán responsables de reclamaciones, daños u otras responsabilidades derivadas del uso de este software.",
-        ["WarningText"] = "⚠️ Uso bajo su propio riesgo",
+        ["WarningText"] = "{icon:warning} Uso bajo su propio riesgo",
         ["UnexpectedError"] = "Algo ha fallado. Queda registrado.",
         ["Close"] = "Cerrar",
         ["NowPlaying"] = "Ahora: {0}",

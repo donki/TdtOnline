@@ -37,7 +37,7 @@ public sealed class SettingsActivity : AppCompatActivity
         FindViewById<TextView>(Resource.Id.title)!.Text = Loc.Get("Settings");
         FindViewById<TextView>(Resource.Id.lists_title)!.Text = Loc.Get("ListsTitle");
         FindViewById<TextView>(Resource.Id.lists_hint)!.Text = Loc.Get("ListsHint");
-        FindViewById<TextView>(Resource.Id.actions_hint)!.Text = Loc.Get("ActionsHint");
+        IconText.Set(FindViewById<TextView>(Resource.Id.actions_hint)!, Loc.Get("ActionsHint"));
         _lists = FindViewById<LinearLayout>(Resource.Id.lists)!;
         _newUrl = FindViewById<EditText>(Resource.Id.new_url)!;
         _newUrl.Hint = Loc.Get("ListUrlHint");

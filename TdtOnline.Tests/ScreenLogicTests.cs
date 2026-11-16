@@ -1,4 +1,4 @@
-using TdtOnline.Localization;
+﻿using TdtOnline.Localization;
 using TdtOnline.Models;
 using TdtOnline.Services;
 using TdtOnline.Tests.Fakes;
@@ -36,6 +36,9 @@ public sealed class ScreenLogicTests : IDisposable
         Assert.Equal(new[] { Loc.Get("Favorites"), Loc.Get("AllChannels"), "Generalistas", "Noticias" }, empty.Select(c => c.Name));
         Assert.Empty(empty[0].Channels);
         Assert.Equal(4, empty[1].Channels.Count);
+        // Solo Favoritos lleva la estrella dibujada; su nombre es texto limpio, sin emoji (General 6.2).
+        Assert.Equal(new[] { true, false, false, false }, empty.Select(c => c.IsFavorites));
+        Assert.Equal("Favorites", empty[0].Name);
 
         var withFav = HomeLogic.DisplayCategories(Raw, new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "cuatro" });
         Assert.Equal("Cuatro", Assert.Single(withFav[0].Channels).Name);

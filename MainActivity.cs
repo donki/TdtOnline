@@ -506,7 +506,13 @@ public sealed class MainActivity : AppCompatActivity
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
             var chip = (TextView)holder.ItemView;
-            chip.Text = _items[position].Name;
+            var category = _items[position];
+            // Favoritos lleva la estrella dibujada, no un emoji (General 6.2): el mismo TextView
+            // enfocable de siempre, asi que la cruceta recorre las pastillas igual.
+            if (category.IsFavorites)
+                IconText.SetWithIcon(chip, "star", category.Name);
+            else
+                IconText.Set(chip, category.Name);
             chip.Selected = position == _selected;
         }
 

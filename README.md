@@ -84,9 +84,10 @@ emulator -avd tv
 `TdtOnline.Tests` (xUnit, net10.0) enlaza los ficheros puros de la app (listas, guía, búsqueda,
 favoritos, textos, DMAX, preferencias, la lógica de las pantallas en `ScreenLogic`, el cambio de
 dirección del reproductor en `StreamFailover` y el registro de errores) y los prueba sin red externa
-ni Android. Estado a 2026-10-02: **144 pruebas** (todas pasan), **92,4 %** de cobertura de líneas del
-código instrumentado (823 de 890) y **53,0 %** sobre toda la app (823 de 1552 líneas ejecutables; antes
-46,0 %). Lo que queda sin probar son las actividades (el enlace con las vistas de Android:
+ni Android. Estado a 2026-11-16: **170 pruebas** (todas pasan), **92,7 %** de cobertura de líneas del
+código instrumentado (862 de 929) y **≈ 53 %** sobre toda la app (a 2026-10-02 eran 823 de 1552
+líneas ejecutables, el 53,0 %; antes 46,0 %). Entre ellas, las de `InlineIcons`: ningún texto,
+diseño ni código de la app lleva emoji (General §6.2). Lo que queda sin probar son las actividades (el enlace con las vistas de Android:
 adaptadores de RecyclerView, ExoPlayer, foco de la cruceta), `TdtApplication`, `LogoLoader` y las
 SharedPreferences; el plan para llegar al 90 % está en el fichero de tareas. El banco tarda **unos
 0,5 s** (≈ 3 s con el arranque de `dotnet test` y la cobertura).
@@ -99,7 +100,7 @@ dotnet tool run reportgenerator -reports:"TdtOnline.Tests/TestResults/*/coverage
 
 ## Funcionalidades completadas (v2026.09.12.1)
 
-- Canales favoritos con pulsación larga / tecla de mando y categoría inicial dinámica «⭐ Favoritos».
+- Canales favoritos con pulsación larga / tecla de mando y categoría inicial dinámica «Favoritos» (con la estrella dibujada, sin emoji desde la v2026.11.16.0).
 - Guía de programación (EPG) en directo desde TDTChannels (`TV.json`), visible en tarjetas y reproductor.
 - Persistencia de último canal visto para reanudación rápida.
 - Diálogo canónico «Acerca de» (autor Josep Solà, Socratic, licencia MIT, transparencia de emisiones abiertas).

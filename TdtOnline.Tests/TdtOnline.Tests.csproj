@@ -47,6 +47,7 @@
     <Compile Include="..\Services\ErrorLog.cs" Link="App\Services\ErrorLog.cs" />
     <Compile Include="..\Services\ScreenLogic.cs" Link="App\Services\ScreenLogic.cs" />
     <Compile Include="..\Services\StreamFailover.cs" Link="App\Services\StreamFailover.cs" />
+    <Compile Include="..\Services\InlineIcons.cs" Link="App\Services\InlineIcons.cs" />
   </ItemGroup>
 
 </Project>

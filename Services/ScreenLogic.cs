@@ -44,7 +44,7 @@ public static class HomeLogic
     /// </summary>
     public static List<Category> DisplayCategories(IReadOnlyList<Category> raw, ISet<string> favorites) =>
     [
-        new Category(Loc.Get("Favorites"), ChannelLists.Favorites(raw, favorites)),
+        new Category(Loc.Get("Favorites"), ChannelLists.Favorites(raw, favorites), IsFavorites: true),
         new Category(Loc.Get("AllChannels"), ChannelLists.AllChannels(raw)),
         .. raw,
     ];

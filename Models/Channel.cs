@@ -26,8 +26,12 @@ public sealed class Channel
     public string Country { get; init; } = string.Empty;
 }
 
-/// <summary>Una categoria con sus canales, tal como se enseña: una pastilla y una rejilla.</summary>
-public sealed record Category(string Name, IReadOnlyList<Channel> Channels);
+/// <summary>
+/// Una categoria con sus canales, tal como se enseña: una pastilla y una rejilla.
+/// <paramref name="IsFavorites"/> marca la de Favoritos, cuya pastilla lleva el icono de la estrella
+/// dibujado (General 6.2: nunca emoji en el texto).
+/// </summary>
+public sealed record Category(string Name, IReadOnlyList<Channel> Channels, bool IsFavorites = false);
 
 /// <summary>Programa emitido en un canal segun la guia de programacion (EPG).</summary>
 public sealed record EpgProgram(string Title, string Description, long StartEpochSeconds, long EndEpochSeconds)

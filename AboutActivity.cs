@@ -1,4 +1,4 @@
-using Android.Content;
+﻿using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Widget;
@@ -37,8 +37,8 @@ public sealed class AboutActivity : AppCompatActivity
         FindViewById<TextView>(Resource.Id.language_title)!.Text = Loc.Get("SectionLanguage");
         var spanish = FindViewById<Button>(Resource.Id.spanish_button)!;
         var english = FindViewById<Button>(Resource.Id.english_button)!;
-        spanish.Text = Loc.Get("SpanishButton");
-        english.Text = Loc.Get("EnglishButton");
+        IconText.Set(spanish, Loc.Get("SpanishButton"));
+        IconText.Set(english, Loc.Get("EnglishButton"));
         spanish.Selected = Loc.Language == "es";
         english.Selected = Loc.Language == "en";
         spanish.Click += (_, _) => UseLanguage("es");
@@ -55,7 +55,7 @@ public sealed class AboutActivity : AppCompatActivity
         FindViewById<TextView>(Resource.Id.legal_title)!.Text = Loc.Get("LegalTitle");
         FindViewById<TextView>(Resource.Id.legal_text1)!.Text = Loc.Get("LegalText1");
         FindViewById<TextView>(Resource.Id.legal_text2)!.Text = Loc.Get("LegalText2");
-        FindViewById<TextView>(Resource.Id.warning_text)!.Text = Loc.Get("WarningText");
+        IconText.Set(FindViewById<TextView>(Resource.Id.warning_text)!, Loc.Get("WarningText"));
 
         var close = FindViewById<Button>(Resource.Id.close_button)!;
         close.Text = Loc.Get("Close");
